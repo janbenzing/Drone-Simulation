@@ -31,6 +31,7 @@ cp -r $FIRMWARE_ROOT/* .
 rm -rf src/dronecourse_bkp
 rm -rf src/dronecourse_dev
 rm -rf build_*
+rm src/.gitignore
 find . -type f -name ".git" | xargs rm -rf
 find . -type f -name ".gitmodules" | xargs rm -rf
 cp $FIRMWARE_ROOT/.gitmodules .
