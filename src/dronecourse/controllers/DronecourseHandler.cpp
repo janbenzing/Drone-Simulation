@@ -51,10 +51,18 @@ void DronecourseHandler::update()
 		_sonar_landing_ctrl.update();
 
 		// if we are in auto_mode and we reached the goal, continue with next mode
-		if (_auto_mode &&_sonar_landing_ctrl.is_goal_reached()) {
-			_sonar_landing_ctrl.arm();
-			_mode = DcMode::TARGET_FOLLOWING;
-			PX4_INFO("Switching to TARGET_FOLLOWING (automatically)");
+		if (_sonar_landing_ctrl.is_goal_reached()) {
+			// Successful landing on platform
+			if (_auto_mode) {
+				// Continue to next task
+				_mode = DcMode::TARGET_FOLLOWING;
+				PX4_INFO("Switching to TARGET_FOLLOWING (automatically)");
+			} else {
+				// Stop here
+				_sonar_landing_ctrl.disarm();
+				_mode = DcMode::IDLE;
+				PX4_INFO("Switching to IDLE (automatically)");
+			}
 		}
 
 		break;
@@ -63,7 +71,9 @@ void DronecourseHandler::update()
 		_follower.update();
 
 		// if we are in auto_mode and we reached the goal, continue with next mode
-		if (_auto_mode && _follower.is_goal_reached()) {
+		if (_follower.is_goal_reached()) {
+			// disarm
+			_follower.disarm();
 			_mode = DcMode::IDLE;
 			PX4_INFO("Switching to IDLE (automatically)");
 		}

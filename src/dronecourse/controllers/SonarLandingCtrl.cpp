@@ -72,7 +72,7 @@ bool SonarLandingCtrl::is_goal_reached()
 	// ------------------------------------------------------
 	// TODO return true when the drone has landed
 	// ------------------------------------------------------
-	return _landed;
+	return true;
 }
 
 

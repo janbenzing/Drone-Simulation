@@ -70,8 +70,7 @@ private:
 	bool _platform_detected;
 	/** Set this flag to true if the platform has been found */
 	bool _platform_found;
-	/** Set this flag to true if the drone has landed */
-	bool _landed;
+
 	/**
 	 * Execute the search algorithm.
 	 * @return true if the drone is ready to land

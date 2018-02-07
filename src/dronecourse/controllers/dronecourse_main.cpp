@@ -532,9 +532,8 @@ int dronecourse_thread_main(int argc, char *argv[])
       mode_change = false;
     }
 
-    if (dc_mode_auto) {
-      handler.set_mode_auto();
-      dc_mode_auto = false;
+    if (dc_mode_auto != handler.get_auto_mode()) {
+      handler.set_auto_mode(dc_mode_auto);
     }
 
     handler.update();

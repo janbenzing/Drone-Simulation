@@ -35,9 +35,11 @@ public:
 	void update();
 
 	void set_mode(DcMode mode) {_mode = mode; _auto_mode = false; _mode_changed = true;};
+	const DcMode& get_mode() const {return _mode;};
 
-	void set_mode_auto() {_auto_mode = true;};
-
+	void set_auto_mode(bool auto_mode) {_auto_mode = auto_mode;};
+	bool get_auto_mode() const {return _auto_mode;};
+	
 	void set_position_command(float x, float y, float z);
 
 	void set_yaw_command(float yaw);

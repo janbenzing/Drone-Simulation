@@ -5,7 +5,7 @@ set -e
 # This script strips the development version of the dronecourse source code from
 # solutions and pushes only the student-facing version to a public repository.
 
-if [[ $CIRCLE_BRANCH != "dronecourse/gen-student-repo" ]]
+if [[ $CIRCLE_BRANCH != "dronecourse/stable" ]]
 then
   exit 0
 fi 
