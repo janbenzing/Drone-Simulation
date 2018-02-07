@@ -1,0 +1,41 @@
+<?xml version='1.0'?>
+<sdf version='1.5'>
+	<model name="platform">
+		<static>true</static>
+		<pose>10 0 0 0 0 0</pose>
+		<link name="box">
+			<pose>0 0 0 0 0 0</pose>
+
+			<collision name='collision'>
+				<geometry>
+					<box>
+						<size>2 2 1</size>
+					</box>
+				</geometry>
+			</collision>
+
+			<visual name='visual'>
+				<geometry>
+					<mesh> <uri> model://platform/box.dae </uri></mesh>
+				</geometry>
+				<material>
+					<script>
+						<uri>model://platform/materials/dronecourse.material</uri>
+						<name>dronecourse/platform</name>
+					</script>
+				</material>
+			</visual>
+
+			<sensor name='contact' type='contact'>
+			  <contact>
+				<collision>collision</collision>
+			  </contact>
+			</sensor>
+		</link>
+		<plugin name='Platform' filename='libgazebo_platform_plugin.so'>
+			<robotNamespace/>
+			<platformSubTopic>platform</platformSubTopic>
+			<contactSubTopic>platform/box/contact</contactSubTopic>
+		</plugin>
+	</model>
+</sdf>

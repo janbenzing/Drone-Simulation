@@ -1,0 +1,63 @@
+<?xml version="1.0"?>
+<mavlink>
+    <include>common.xml</include>
+        <!-- NOTE: If the included file already contains a version tag, remove the version tag here, else uncomment to enable. -->
+	<!--<version>3</version>-->
+	<enums>
+	</enums>
+	<messages>
+		<message id="150" name="TARGET_POSITION_NED">
+			<description>This message encodes the position of a target object</description>
+			<field type="float" name="x">X Position in NED frame in meters</field>
+			<field type="float" name="y">Y Position in NED frame in meters</field>
+			<field type="float" name="z">Z Position in NED frame in meters</field>
+			<field type="float" name="var_x">X Position variance in NED frame in meters^2</field>
+			<field type="float" name="var_y">Y Position variance in NED frame in meters^2</field>
+			<field type="float" name="var_z">Z Position variance in NED frame in meters^2</field>
+			<field type="uint8_t" name="target_num">ID of the target object.</field>
+		</message>
+		<message id="151" name="TARGET_POSITION_NED_FILTERED">
+			<description>This message encodes the position of a target object</description>
+			<field type="float" name="x">X Position in NED frame in meters</field>
+			<field type="float" name="y">Y Position in NED frame in meters</field>
+			<field type="float" name="z">Z Position in NED frame in meters</field>
+			<field type="float" name="vx">X Velocity in NED frame in meters/s</field>
+			<field type="float" name="vy">Y Velocity in NED frame in meters/s</field>
+			<field type="float" name="vz">Z Velocity in NED frame in meters/s</field>
+			<field type="float" name="var_x">X Position variance in NED frame in meters^2</field>
+			<field type="float" name="var_y">Y Position variance in NED frame in meters^2</field>
+			<field type="float" name="var_z">Z Position variance in NED frame in meters^2</field>
+			<field type="float" name="var_vx">X Velocity variance in NED frame in (meters/s)^2</field>
+			<field type="float" name="var_vy">Y Velocity variance in NED frame in (meters/s)^2</field>
+			<field type="float" name="var_vz">Z Velocity variance in NED frame in (meters/s)^2</field>
+			<field type="uint8_t" name="target_num">ID of the target object.</field>
+		</message>
+		<message id="152" name="TARGET_POSITION_IMAGE">
+			<description>This message encodes the position of a target in an image </description>
+			<field type="uint64_t" name="time_usec">Timestamp (micros since boot or Unix epoch)</field>
+			<field type="uint32_t" name="u">X Position in pixels frame in meters</field>
+			<field type="uint32_t" name="v">Y Position in pixels frame in meters</field>
+			<field type="float" name="dist"> distance to target meters</field>
+			<field type="float" name="pitch"> Pitch from body to camera frame</field>
+			<field type="float" name="yaw"> Yaw from body to camera frame</field>
+			<field type="float" name="var_u"> variance of u</field>
+			<field type="float" name="var_v"> variance of v</field>
+			<field type="float" name="var_dist"> variance of dist</field>
+			<field type="uint8_t" name="target_num">ID of the target object.</field>
+		</message>
+		<message id="153" name="GIMBAL_COMMAND">
+			<description>This message encodes the position of a target in an image </description>
+			<field type="uint64_t" name="time_usec">Timestamp (micros since boot or Unix epoch)</field>
+			<field type="float" name="pitch"> Pitch from body to camera frame</field>
+			<field type="float" name="yaw"> Yaw from body to camera frame</field>
+		</message>
+		<message id="155" name="PLATFORM_LANDING">
+			<description>This message encodes landing velocity on the platform </description>
+			<field type="uint64_t" name="time_usec">Timestamp (micros since boot or Unix epoch)</field>
+			<field type="float" name="vx"> X Velocity</field>
+			<field type="float" name="vy"> Y Velocity</field>
+			<field type="float" name="vz"> Z Velocity</field>
+			<field type="uint8_t" name="contact"> 1: true, 0: false</field>
+		</message>
+	</messages>
+</mavlink>

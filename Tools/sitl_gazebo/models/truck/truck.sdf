@@ -1,0 +1,191 @@
+<?xml version='1.0'?>
+<sdf version='1.6'>
+  <model name='truck'>
+    <include>
+      <uri>model://truck_wheel</uri>
+      <name>wheel_rear0</name>
+      <pose frame=''>-1.3 -0.9 0 0 0 1.57</pose>
+    </include>
+    <include>
+      <uri>model://truck_wheel</uri>
+      <name>wheel_rear1</name>
+      <pose frame=''>-1.3 0.9 0 0 0 -1.57</pose>
+    </include>
+    <include>
+      <uri>model://truck_wheel</uri>
+      <name>wheel_front0</name>
+      <pose frame=''>2.7 -0.9 0 0 0 1.57</pose>
+    </include>
+    <include>
+      <uri>model://truck_wheel</uri>
+      <name>wheel_front1</name>
+      <pose frame=''>2.7 0.9 0 0 0 -1.57</pose>
+    </include>
+
+    <link name='cab'>
+      <pose frame=''>2.6 0 1.55 0 -0 0</pose>
+      <inertial>
+        <mass>5</mass>
+        <inertia>
+          <ixx>300</ixx> <!-- m*(y^2 + z^2)/12 -->
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>260</iyy> <!-- m*(x^2 + z^2)/12 -->
+          <iyz>0</iyz>
+          <izz>230</izz> <!-- m*(x^2 + y^2)/12 -->
+        </inertia>
+      </inertial>
+      <visual name='visual'>
+        <pose frame=''>0 0 0 0 -0 0</pose>
+        <geometry>
+          <box>
+            <size>1.5 1.8 2</size>
+          </box>
+        </geometry>
+        <material>
+          <script>
+            <uri>file://media/materials/scripts/gazebo.material</uri>
+            <name>Gazebo/Blue</name>
+          </script>
+        </material>
+      </visual>
+      <collision name='collision'>
+        <geometry>
+          <box>
+            <size>1.5 1.8 2</size>
+          </box>
+        </geometry>
+      </collision>
+    </link>
+    <link name='loading_platform'>
+      <pose frame=''>0 0 0.92 0 -0 0</pose>
+      <inertial>
+        <mass>200</mass>
+        <inertia>
+          <ixx>74</ixx> <!-- m*(y^2 + z^2)/12 -->
+          <ixy>0</ixy>
+          <ixz>0</ixz>
+          <iyy>267</iyy> <!-- m*(x^2 + z^2)/12 -->
+          <iyz>0</iyz>
+          <izz>340</izz> <!-- m*(x^2 + y^2)/12 -->
+        </inertia>
+      </inertial>
+      <visual name='visual'>
+        <geometry>
+          <box>
+            <size>4 2.1 0.2</size>
+          </box>
+        </geometry>
+        <material>
+          <lighting>1</lighting>
+          <script>
+            <uri>model://truck/materials/scripts</uri>
+            <uri>model://truck/materials/textures</uri>
+            <name>truck/loading_platform</name>
+          </script>
+        </material>
+      </visual>
+      <collision name='collision'>
+        <geometry>
+          <box>
+            <size>4 2.1 0.2</size>
+          </box>
+        </geometry>
+      </collision>
+    </link>
+
+    <link name='target_platform'>
+      <pose frame=''>0 0 1.025 0 -0 0</pose>
+      <visual name='visual'>
+        <geometry>
+          <box>
+            <size>1.5 1.5 0.01</size>
+          </box>
+        </geometry>
+        <material>
+          <lighting>1</lighting>
+          <script>
+            <uri>model://truck/materials/scripts</uri>
+            <uri>model://truck/materials/textures</uri>
+            <name>truck/target_platform</name>
+          </script>
+        </material>
+      </visual>
+    </link>
+
+    <joint name='joint_wheel_rear0' type='revolute'>
+      <parent>loading_platform</parent>
+      <child>wheel_rear0::link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <upper>0</upper>
+          <lower>0</lower>
+        </limit>
+      </axis>
+    </joint>
+    <joint name='joint_wheel_rear1' type='revolute'>
+      <parent>loading_platform</parent>
+      <child>wheel_rear1::link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <upper>0</upper>
+          <lower>0</lower>
+        </limit>
+      </axis>
+    </joint>
+    <joint name='joint_wheel_front0' type='revolute'>
+      <parent>loading_platform</parent>
+      <child>wheel_front0::link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <upper>0</upper>
+          <lower>0</lower>
+        </limit>
+      </axis>
+    </joint>
+    <joint name='joint_wheel_front1' type='revolute'>
+      <parent>loading_platform</parent>
+      <child>wheel_front1::link</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <upper>0</upper>
+          <lower>0</lower>
+        </limit>
+      </axis>
+    </joint>
+    <joint name='joint_cab' type='revolute'>
+      <parent>loading_platform</parent>
+      <child>cab</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <upper>0</upper>
+          <lower>0</lower>
+        </limit>
+      </axis>
+    </joint>
+    <joint name='joint_target_platform' type='revolute'>
+      <parent>loading_platform</parent>
+      <child>target_platform</child>
+      <axis>
+        <xyz>0 0 1</xyz>
+        <limit>
+          <upper>0</upper>
+          <lower>0</lower>
+        </limit>
+      </axis>
+    </joint>
+    <plugin name='TruckControl' filename='libgazebo_truck_plugin.so'>
+      <speed_min>2</speed_min>
+      <speed_max>2</speed_max>
+      <speed_bias_rate_std>0.0001</speed_bias_rate_std>
+      <pos_bias_max>0</pos_bias_max>
+      <pos_bias_rate_std>0.0005</pos_bias_rate_std>
+      <rand_trajectory>1</rand_trajectory>
+    </plugin>
+  </model>
+</sdf>

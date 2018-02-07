@@ -1,0 +1,16 @@
+syntax = "proto2";
+package target_camera.msgs;
+
+message TargetPositionImage
+{
+  required uint64 time_usec = 1;
+  required uint32 u = 2;
+  required uint32 v = 3;
+  required float dist = 4;
+  required float pitch= 5;
+  required float yaw = 6;
+  required float var_u = 7;
+  required float var_v = 8;
+  required float var_dist = 9;
+  required uint32 target_num = 10;
+}

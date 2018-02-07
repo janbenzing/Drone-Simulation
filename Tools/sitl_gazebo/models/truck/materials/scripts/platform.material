@@ -1,0 +1,53 @@
+material truck/loading_platform
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1 1.0
+			diffuse 1 1 1 1.0
+			specular 0.2 0.2 0.2 1.0 12.5
+
+			texture_unit
+			{
+				texture cargo_platform.png
+			}
+		}
+	}
+}
+
+material truck/target_platform
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1 1.0
+			diffuse 1 1 1 1.0
+			specular 0.2 0.2 0.2 1.0 12.5
+
+			texture_unit
+			{
+				texture target_platform.png
+			}
+		}
+	}
+}
+
+material truck/cabin_front
+{
+	technique
+	{
+		pass
+		{
+			ambient 1 1 1 1.0
+			diffuse 1 1 1 1.0
+			specular 0.2 0.2 0.2 1.0 12.5
+
+			texture_unit
+			{
+				texture cabin.png
+			}
+		}
+	}
+}

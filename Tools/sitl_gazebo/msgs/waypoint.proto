@@ -1,0 +1,8 @@
+syntax = "proto2";
+package waypoint_msgs.msgs;
+
+message Waypoint
+{
+  optional int32 waypoint_no      = 1;
+  optional bool validated         = 2;
+}

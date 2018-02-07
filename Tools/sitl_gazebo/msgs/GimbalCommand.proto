@@ -1,0 +1,9 @@
+syntax = "proto2";
+package target_camera.msgs;
+
+message GimbalCommand
+{
+  required float pitch = 1;
+  required float yaw   = 2;
+
+}
