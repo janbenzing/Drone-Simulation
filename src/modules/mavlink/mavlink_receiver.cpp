@@ -132,6 +132,8 @@ MavlinkReceiver::MavlinkReceiver(Mavlink *parent) :
 	_transponder_report_pub(nullptr),
 	_collision_report_pub(nullptr),
 	_control_state_pub(nullptr),
+	_dronecourse_truck_position_pub(nullptr),
+	_dronecourse_platform_position_pub(nullptr),
 	_gps_inject_data_pub(nullptr),
 	_command_ack_pub(nullptr),
 	_control_mode_sub(orb_subscribe(ORB_ID(vehicle_control_mode))),
@@ -296,6 +298,14 @@ MavlinkReceiver::handle_message(mavlink_message_t *msg)
 
 	case MAVLINK_MSG_ID_PLAY_TUNE:
 		handle_message_play_tune(msg);
+		break;
+
+	case MAVLINK_MSG_ID_TRUCK_POSITION:
+		handle_message_truck_position(msg);
+		break;
+
+	case MAVLINK_MSG_ID_PLATFORM_POSITION:
+		handle_message_platform_position(msg);
 		break;
 
 	default:
@@ -1463,6 +1473,50 @@ MavlinkReceiver::handle_message_play_tune(mavlink_message_t *msg)
 				px4_close(fd);
 			}
 		}
+	}
+}
+
+void
+MavlinkReceiver::handle_message_truck_position(mavlink_message_t *msg)
+{
+	mavlink_truck_position_t truck_position_msg;
+	mavlink_msg_truck_position_decode(msg, &truck_position_msg);
+
+	dronecourse_truck_position_s dronecourse_truck_position = {};
+	dronecourse_truck_position.timestamp = hrt_absolute_time();
+	dronecourse_truck_position.x = truck_position_msg.x;
+	dronecourse_truck_position.y = truck_position_msg.y;
+	dronecourse_truck_position.z = truck_position_msg.z;
+	dronecourse_truck_position.vx = truck_position_msg.vx;
+	dronecourse_truck_position.vy = truck_position_msg.vy;
+	dronecourse_truck_position.vz = truck_position_msg.vz;
+	dronecourse_truck_position.heading = truck_position_msg.heading;
+
+	if (_dronecourse_truck_position_pub == nullptr) {
+		_dronecourse_truck_position_pub = orb_advertise(ORB_ID(dronecourse_truck_position), &dronecourse_truck_position);
+
+	} else {
+		orb_publish(ORB_ID(dronecourse_truck_position), _dronecourse_truck_position_pub, &dronecourse_truck_position);
+	}
+}
+
+void
+MavlinkReceiver::handle_message_platform_position(mavlink_message_t *msg)
+{
+	mavlink_platform_position_t platform_position_msg;
+	mavlink_msg_platform_position_decode(msg, &platform_position_msg);
+
+	dronecourse_platform_position_s dronecourse_platform_position = {};
+	dronecourse_platform_position.timestamp = hrt_absolute_time();
+	dronecourse_platform_position.x = platform_position_msg.x;
+	dronecourse_platform_position.y = platform_position_msg.y;
+	dronecourse_platform_position.z = platform_position_msg.z;
+
+	if (_dronecourse_platform_position_pub == nullptr) {
+		_dronecourse_platform_position_pub = orb_advertise(ORB_ID(dronecourse_platform_position), &dronecourse_platform_position);
+
+	} else {
+		orb_publish(ORB_ID(dronecourse_platform_position), _dronecourse_platform_position_pub, &dronecourse_platform_position);
 	}
 }
 

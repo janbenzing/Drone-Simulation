@@ -44,10 +44,6 @@
 
 #include "mavlink_main.h"
 #include "mavlink_messages.h"
-#include <v1.0/dronecourse/mavlink_msg_target_position_ned.h>
-#include <v1.0/dronecourse/mavlink_msg_target_position_ned_filtered.h>
-#include <v1.0/dronecourse/mavlink_msg_target_position_image.h>
-#include <v1.0/dronecourse/mavlink_msg_platform_landing.h>
 
 #include <commander/px4_custom_mode.h>
 #include <drivers/drv_pwm_output.h>

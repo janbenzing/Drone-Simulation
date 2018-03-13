@@ -57,9 +57,9 @@ class GazeboPlatformPlugin : public ModelPlugin {
  /** Height */
  float _h;
  /** Position X coordinate */
- float _x = 0;
+ float _x = 100;
  /** Position Y coordinate */
- float _y = 10;
+ float _y = 0;
 
  math::Vector3 _landing_vel;
  platform_msgs::msgs::PlatformLanding _landing_msg;

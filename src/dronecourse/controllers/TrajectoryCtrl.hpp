@@ -26,6 +26,10 @@ public:
 private:
 
 	WaypointNavigator *_navigator;
+	orb_advert_t _dronecourse_waypoint_pub; 
+	bool waypoint_published;
+	void publish_waypoint_list(void);
+
 	// --------------------------------------------------------------------------
 	// TODO: Create member variables for the waypoint and its current index 
 	// --------------------------------------------------------------------------

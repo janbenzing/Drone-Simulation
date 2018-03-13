@@ -11,7 +11,6 @@
 #include <unit_test/unit_test.h>
 #include <matrix/math.hpp>
 #include <uORB/topics/vehicle_local_position.h>
-#include "waypoints.hpp"
 
 #define FLOAT_PRECISION 5
 

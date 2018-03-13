@@ -55,8 +55,10 @@ namespace gazebo
 
       bool FindDetectionParameters(const sdf::ElementPtr _sdf);
 
-      bool SendPositionMsg(uint16_t target_id, const Vector& target_pos, const Vector& speed, uint32_t timestamp_ms);
+      bool SendTruckPositionMsg(uint16_t target_id, const Vector& pos, const Vector& vel, float heading, uint64_t timestamp_us);
+      bool SendPlatformPositionMsg(uint16_t target_id, const Vector& pos, uint64_t timestamp_us);
 
+      bool SendPositionMsg(uint16_t target_id, const Vector& target_pos, const Vector& speed, uint32_t timestamp_ms);
       bool SendGlobalPositionMsg(uint16_t target_id, const Pose& pose, uint32_t timestamp_ms);
 
 

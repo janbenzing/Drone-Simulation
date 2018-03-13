@@ -31,6 +31,9 @@ public:
 	virtual bool is_goal_reached() const;
 
 private:
+	void update_subscriptions();
+	void update_parameters();
+	
 };
 
 

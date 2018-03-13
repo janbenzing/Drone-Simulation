@@ -59,5 +59,23 @@
 			<field type="float" name="vz"> Z Velocity</field>
 			<field type="uint8_t" name="contact"> 1: true, 0: false</field>
 		</message>
+		<message id="156" name="PLATFORM_POSITION">
+			<description>Ground truth position of the platform</description>
+			<field type="uint64_t" name="time_usec">Timestamp (micros since boot or Unix epoch)</field>
+			<field type="float" name="x"> X Position</field>
+			<field type="float" name="y"> Y Position</field>
+			<field type="float" name="z"> Z Position</field>			
+		</message>
+		<message id="157" name="TRUCK_POSITION">
+			<description>Ground truth position of the truck in the arena</description>
+			<field type="uint64_t" name="time_usec">Timestamp (micros since boot or Unix epoch)</field>
+			<field type="float" name="x"> X Position</field>
+			<field type="float" name="y"> Y Position</field>
+			<field type="float" name="z"> Z Position</field>			
+			<field type="float" name="vx"> X Velocity</field>
+			<field type="float" name="vy"> Y Velocity</field>
+			<field type="float" name="vz"> Z Velocity</field>
+			<field type="float" name="heading"> Heading</field>
+		</message>
 	</messages>
 </mavlink>

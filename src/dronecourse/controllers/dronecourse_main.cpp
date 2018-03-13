@@ -54,12 +54,17 @@
 
 #include "DronecourseHandler.hpp"
 
+// using std::string;
+
 /** Deamon exit flag. Set this flag to true to interrupt thread. */
 static volatile bool thread_should_exit = false;
 /** Deamon status flag. */
 static volatile bool thread_running = false;
 /** Handle of daemon task / thread */
 static int deamon_task;
+
+/* Set to `true` is the platform should be initialized at a random position */
+static bool random_platform_position = false;
 
 static DronecourseHandler::DcMode dc_mode = DronecourseHandler::DcMode::IDLE;
 static bool mode_change = false;
@@ -72,6 +77,12 @@ static float pos_x = 0;
 static float pos_y = 0;
 /** Desired drone z position */
 static float pos_z = 5;
+/** Desired drone x position */
+static float platform_x = 0;
+/** Desired drone y position */
+static float platform_y = 0;
+/** Desired drone z position */
+static float platform_z = 0;
 /** Set to `true` when gimbal rotation has been updated */
 static bool new_gimbal_rot = false;
 /** Set to `true` when gimbal should switch to auto mode */
@@ -117,19 +128,22 @@ static int usage(const char *reason)
   fprintf(output,
       "usage: dronecourse command [parameters] \n\n"
       "Commands:\n"
-      "    start                start the dronecourse application\n"
-      "    stop                 stop the dronecourse application\n"
-      "    status               print whether the dronecourse application is running\n"
-      "    pos                  set desired position\n"
-      "    waypoint_navigation  start waypoint_navigation\n"
-      "    sonar_landing        start landing with sonar\n"
-      "    target_following     start target_following\n"
-      "    mission              start complete mission, from waypoint navigation, to sonar landing, to target following\n"
-      "    auto                 set mode to auto-continue\n"
-      "    gimbal               set gimbal parameters\n"
-      "    arm                  arm the vehicle (starts motors)\n"
-      "    disarm               disarm the vehicle (stops motors)\n"
-      "    help                 show this message or more information about one command\n"
+      "    start                    start the dronecourse application\n"
+      "    stop                     stop the dronecourse application\n"
+      "    status                   print whether the dronecourse application is running\n"
+      "    pos                      set desired position\n"
+      "    platform                 set platform position\n"
+      "    waypoint_navigation      start waypoint_navigation\n"
+      "    sonar_landing            start landing with sonar\n"
+      "    target_following         start target_following\n"
+      "    mission                  start complete mission, from waypoint navigation, to sonar landing, to target following\n"
+      "    auto                     set mode to auto-continue\n"
+      "    gimbal                   set gimbal parameters\n"
+      "    arm                      arm the vehicle (starts motors)\n"
+      "    disarm                   disarm the vehicle (stops motors)\n"
+      "    wait_for_return          waits for return (used in eval mode)\n"
+      "    random_platform_position platform will be initialized at a random position\n"
+      "    help                     show this message or more information about one command\n"
       "\n"
       "Type `dronecourse help command` to print more information about a "
       "specific command and its parameters.\n");
@@ -172,6 +186,15 @@ static int dronecourse_command_help(int argc, char *argv[])
              "    x position along x axis\n"
              "    y position along y axis\n"
              "    z position along z axis\n");
+      return 0;
+
+    } else if (!strcmp(argv[2], "platform")) {
+      printf("usage: dronecourse platform x y z\n");
+      printf("Set platform position.\n"
+             "Parameters:\n"
+             "    x position along x axis\n"
+             "    y position along y axis\n"
+             "    z height\n");
       return 0;
 
     } else if (!strcmp(argv[2], "auto")) {
@@ -268,7 +291,7 @@ static int dronecourse_command_status(int argc, char *argv[])
     case DronecourseHandler::DcMode::IDLE:
       PX4_INFO("mode : IDLE");
       break;
-
+    
     case DronecourseHandler::DcMode::POS_CTRL:
       PX4_INFO("mode : POS_CTRL");
       break;
@@ -283,6 +306,10 @@ static int dronecourse_command_status(int argc, char *argv[])
 
     case DronecourseHandler::DcMode::WAYPOINT_NAVIGATION:
       PX4_INFO("mode : WAYPOINT_NAVIGATION");
+      break;
+
+    case DronecourseHandler::DcMode::END:
+      PX4_INFO("mode : END");
       break;
     }
 
@@ -324,6 +351,48 @@ static int dronecourse_command_pos(int argc, char *argv[])
   mode_change = true;
   PX4_INFO("Setting position command to ( %f | %f | %f )",
      (double) pos_x, (double) pos_y, (double) pos_z);
+  return 0;
+}
+
+/**
+ * Platform command.
+ * usage: dronecourse platform x y z
+ */
+static int dronecourse_command_platform(int argc, char *argv[]);
+
+static int dronecourse_command_platform(int argc, char *argv[])
+{
+  if (argc < 5) {
+    usage("coordinates missing");
+    return 1;
+  }
+
+  const int MAX_CHAR = 10;
+
+  char str1[40];
+  char str2[10];
+  char str3[10];
+  strcpy (str1,"platform -x ");
+  strcpy (str2," -y ");
+  strcpy (str3," -H ");
+  // setting new position setpoint
+  char *end;
+  platform_x = strtod(argv[2], &end);
+  platform_y = strtod(argv[3], &end);
+  platform_z = strtod(argv[4], &end);
+
+  strncat (str1, argv[2], MAX_CHAR);
+  strncat (str1, str2, MAX_CHAR);
+  strncat (str1, argv[3], MAX_CHAR);
+  strncat (str1, str3, MAX_CHAR);
+  strncat (str1, argv[4], MAX_CHAR);
+
+  if (system(str1)) {
+    PX4_WARN("platform error");
+  }
+
+  PX4_INFO("Moving platform to ( %f | %f | %f )",
+     (double) platform_x, (double) platform_y, (double) platform_z);
   return 0;
 }
 
@@ -372,6 +441,41 @@ static int dronecourse_command_target_following(int argc, char *argv[])
   PX4_INFO("Switching to TARGET_FOLLOWING mode");
   return 0;
 
+}
+
+/**
+ * Wait for return command.
+ * usage: dronecourse wait_for_return
+ */
+static int dronecourse_command_wait_for_return(int argc, char *argv[]); 
+
+ static int dronecourse_command_wait_for_return(int argc, char *argv[])
+ {
+  random_platform_position = true; 
+
+  PX4_INFO("Waiting for return"); 
+
+  while (dc_mode != DronecourseHandler::DcMode::END){
+     usleep(1000000);
+  } 
+
+   return 0;
+   
+} 
+
+/* *
+ * Initialise platform at random position
+ * usage: dronecourse random_platform_position
+*/ 
+static int dronecourse_command_random_platform_position(int argc, char *argv[]);
+
+static int dronecourse_command_random_platform_position(int argc, char *argv[])
+{
+  random_platform_position = true;
+
+  PX4_INFO("Platform will be initialized at a random position");
+
+  return 0;
 }
 
 /**
@@ -478,19 +582,22 @@ int dronecourse_main(int argc, char *argv[])
 
   // Print usage in case no command (such as help) is given
   if (argc < 2) {
-    usage("");
-    return 0;
-  }
+     usage("");
+     return 0;
+  } 
 
   DRONECOURSE_COMMAND(start, argc, argv);
   DRONECOURSE_COMMAND(stop, argc, argv);
   DRONECOURSE_COMMAND(status, argc, argv);
   DRONECOURSE_COMMAND(pos, argc, argv);
+  DRONECOURSE_COMMAND(platform, argc, argv);
   DRONECOURSE_COMMAND(waypoint_navigation, argc, argv);
   DRONECOURSE_COMMAND(sonar_landing, argc, argv);
   DRONECOURSE_COMMAND(target_following, argc, argv);
   DRONECOURSE_COMMAND(auto, argc, argv);
   DRONECOURSE_COMMAND(mission, argc, argv);
+  DRONECOURSE_COMMAND(wait_for_return, argc, argv);
+  DRONECOURSE_COMMAND(random_platform_position,argc, argv);
   DRONECOURSE_COMMAND(gimbal, argc, argv);
   DRONECOURSE_COMMAND(help, argc, argv);
   DRONECOURSE_COMMAND(arm, argc, argv);
@@ -505,8 +612,10 @@ int dronecourse_thread_main(int argc, char *argv[])
 {
   PX4_DEBUG("starting");
 
-  if (system("platform -a -H 0")) {
-    PX4_WARN("platform error");
+  if (random_platform_position) {
+    if (system("platform -a -H 0")) {
+      PX4_WARN("platform error");
+    }
   }
 
   thread_running = true;
@@ -530,11 +639,16 @@ int dronecourse_thread_main(int argc, char *argv[])
     if (mode_change) {
       handler.set_mode(dc_mode);
       mode_change = false;
+      if (dc_mode == DronecourseHandler::DcMode::WAYPOINT_NAVIGATION && dc_mode_auto){
+        handler.start_timer_task1();
+      }
     }
 
     if (dc_mode_auto != handler.get_auto_mode()) {
       handler.set_auto_mode(dc_mode_auto);
     }
+
+    dc_mode = handler.get_mode();
 
     handler.update();
     usleep(DT_US);

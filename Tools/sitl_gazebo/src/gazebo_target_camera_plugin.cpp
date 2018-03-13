@@ -1,6 +1,7 @@
 #include "gazebo_target_camera_plugin.h"
 #include <gazebo/sensors/sensors.hh>
 #include "gazebo/rendering/Camera.hh"
+#include <string>
 
 namespace gazebo {
 
@@ -114,45 +115,65 @@ void TargetCameraPlugin::OnNewFrame()
   std::map<physics::EntityPtr, TargetMsg>::iterator msg_it; 
   for(msg_it = message_map_.begin(); msg_it != message_map_.end(); msg_it++)
   {
-    TargetMsg& msg = msg_it->second;
+      // Retrieve entity and message for this target
+      physics::EntityPtr entity = msg_it->first;
+      TargetMsg& msg = msg_it->second;
 
-    // Get bearing of target in camera frame
-    const Pose& target_pose = msg_it->first->GetWorldPose().Ign();
-    const Vector rel_pos = (target_pose - camera_pose).Pos();
+      // Get name of entity
+      std::string name = entity->GetName();
 
-    float pixel_x = round(-(focal_length_ * rel_pos.Y()/rel_pos.X()) + image_width2_); // column
-    float pixel_y = round(-(focal_length_ * rel_pos.Z()/rel_pos.X()) + image_height2_); // row
-    float z = abs(rel_pos.Length());
+      if (name == "target_platform") {
+          // This is the truck
+        
+          // Get bearing of target in camera frame
+          const Pose& target_pose = msg_it->first->GetWorldPose().Ign();
+          const Vector rel_pos = (target_pose - camera_pose).Pos();
 
-    float noise_z_std = noise_z_std_ * z;
+          float pixel_x = round(-(focal_length_ * rel_pos.Y()/rel_pos.X()) + image_width2_); // column
+          float pixel_y = round(-(focal_length_ * rel_pos.Z()/rel_pos.X()) + image_height2_); // row
+          float z = abs(rel_pos.Length());
 
-    // add noise
-    pixel_x += math::Rand::GetDblNormal(0.0, noise_xy_std_);
-    pixel_y += math::Rand::GetDblNormal(0.0, noise_xy_std_);
-    z +=       math::Rand::GetDblNormal(0.0, noise_z_std);
+          float noise_z_std = noise_z_std_ * z;
 
-    if(pixel_x >= 0 && pixel_x < 2*image_width2_ && pixel_y >= 0 && pixel_y < 2*image_height2_)
-    {
-      if(rel_pos.X() > 0){
-        msg.set_time_usec(timestamp_us);
-        msg.set_u(pixel_x);
-        msg.set_v(pixel_y);
-        msg.set_dist(z);
-        msg.set_pitch(gimbal_.GetPitch());
-        msg.set_yaw(gimbal_.GetYaw());
-        msg.set_var_u(noise_xy_std_*noise_xy_std_);
-        msg.set_var_v(noise_xy_std_*noise_xy_std_);
-        msg.set_var_dist(noise_z_std*noise_z_std);
-        targetPos_pub_->Publish(msg);
+          // add noise
+          pixel_x += math::Rand::GetDblNormal(0.0, noise_xy_std_);
+          pixel_y += math::Rand::GetDblNormal(0.0, noise_xy_std_);
+          z +=       math::Rand::GetDblNormal(0.0, noise_z_std);
+
+          if(pixel_x >= 0 && pixel_x < 2*image_width2_ && pixel_y >= 0 && pixel_y < 2*image_height2_)
+          {
+            if(rel_pos.X() > 0){
+              msg.set_time_usec(timestamp_us);
+              msg.set_u(pixel_x);
+              msg.set_v(pixel_y);
+              msg.set_dist(z);
+              msg.set_pitch(gimbal_.GetPitch());
+              msg.set_yaw(gimbal_.GetYaw());
+              msg.set_var_u(noise_xy_std_*noise_xy_std_);
+              msg.set_var_v(noise_xy_std_*noise_xy_std_);
+              msg.set_var_dist(noise_z_std*noise_z_std);
+              targetPos_pub_->Publish(msg);
+            }
+          }
+
+          Vector target_vel = msg_it->first->GetWorldLinearVel().Ign();
+          
+          // Send ground truth position of Truck
+          SendTruckPositionMsg(msg.target_num(), target_pose.Pos(), target_vel, 0.0f, timestamp_us);
+
+      } else if (name == "box") {
+          // This is the platform
+
+          // Get bearing of target in camera frame
+          const Pose& target_pose = msg_it->first->GetWorldPose().Ign();
+          const Vector rel_pos = (target_pose - camera_pose).Pos();
+
+          // Send ground truth position of Platform
+          SendPlatformPositionMsg(msg.target_num(), target_pose.Pos(), timestamp_us);
       }
-    }
-
-    Vector target_vel = msg_it->first->GetWorldLinearVel().Ign();
-    SendPositionMsg(msg.target_num(), target_pose.Pos(), target_vel, timestamp_us/1000);
-    SendGlobalPositionMsg(msg.target_num(), target_pose, timestamp_us/1000);
   }
 
-  SendPositionMsg(-1, camera_pose.Pos(),  camera_link_->GetWorldLinearVel().Ign(), timestamp_us/1000);
+  SendPositionMsg(-1, camera_pose.Pos(),  camera_link_->GetWorldLinearVel().Ign(), timestamp_us);
   SendGlobalPositionMsg(-1, camera_pose, timestamp_us/1000);
 }
 
@@ -243,6 +264,38 @@ bool TargetCameraPlugin::FindDetectionParameters(const sdf::ElementPtr _sdf)
 
   return success;
 }
+
+bool TargetCameraPlugin::SendTruckPositionMsg(uint16_t target_id, const Vector& pos, const Vector& vel, float heading, uint64_t timestamp_us)
+{
+  mavlink_truck_position_t msg;
+  msg.time_usec = timestamp_us;
+
+  msg.x = pos.Y();
+  msg.y = pos.X();
+  msg.z = -pos.Z();
+  msg.vx = vel.Y();
+  msg.vy = vel.X();
+  msg.vz = -vel.Z();
+  msg.heading = heading;
+
+  send_mavlink_message(MAVLINK_MSG_ID_TRUCK_POSITION, &msg, target_id + 100, 200);
+
+  return true;
+}
+
+bool TargetCameraPlugin::SendPlatformPositionMsg(uint16_t target_id, const Vector& pos, uint64_t timestamp_us)
+{
+  mavlink_platform_position_t msg;
+  msg.time_usec = timestamp_us;
+  msg.x = pos.Y();
+  msg.y = pos.X();
+  msg.z = -pos.Z();
+
+  send_mavlink_message(MAVLINK_MSG_ID_PLATFORM_POSITION, &msg, target_id + 100, 200);
+
+  return true;
+}
+
 
 bool TargetCameraPlugin::SendPositionMsg(uint16_t target_id, const Vector& target_pos, const Vector& speed, uint32_t timestamp_ms)
 {

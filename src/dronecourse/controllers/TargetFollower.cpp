@@ -28,4 +28,18 @@ bool TargetFollower::is_goal_reached() const
 	return true;
 }
 
+void TargetFollower::update_subscriptions()
+{
+	// ------------------------------------------------------
+	// TODO update subscriptions
+	// ------------------------------------------------------
 
+}
+
+void TargetFollower::update_parameters()
+{
+	// ------------------------------------------------------
+	// TODO update parameters
+	// ------------------------------------------------------
+
+}

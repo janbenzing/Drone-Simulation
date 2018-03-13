@@ -9,6 +9,7 @@
 #include "TargetTracker.hpp"
 #include <uORB/topics/target_position_ned.h>
 #include <uORB/topics/target_position_ned_filtered.h>
+#include <drivers/drv_hrt.h>
 #include <float.h>
 
 TargetTracker::TargetTracker(float dt)

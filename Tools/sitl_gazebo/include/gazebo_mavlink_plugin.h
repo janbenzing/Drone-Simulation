@@ -4,7 +4,7 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#include "mavlink/v1.0/common/mavlink.h"
+#include "mavlink/v1.0/dronecourse/mavlink.h"
 
 #ifndef _GAZEBO_MAVLINK_PLUGIN_HH_
 #define _GAZEBO_MAVLINK_PLUGIN_HH_
