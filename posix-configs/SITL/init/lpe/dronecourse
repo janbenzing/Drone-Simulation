@@ -119,10 +119,15 @@ mavlink stream -r 10 -s TARGET_POSITION_NED -u 14556
 mavlink stream -r 10 -s TARGET_POSITION_NED_FILTERED -u 14556
 mavlink stream -r 10 -s DISTANCE_SENSOR -u 14556
 mavlink stream -r 10 -s PLATFORM_LANDING -u 14556
+mavlink start -u 14580 -m magic -r 2000000
 
-sdlog2 start -r 100 -e -t -a
+logger start
+
 mavlink boot_complete
 replay trystart
+
+# Move platform at random position
+dronecourse random_platform_position
 
 # start our offboard controller and dronecourse application
 offboard_controller start

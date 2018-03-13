@@ -78,6 +78,8 @@
 #include <uORB/topics/gps_inject_data.h>
 #include <uORB/topics/control_state.h>
 #include <uORB/topics/collision_report.h>
+#include <uORB/topics/dronecourse_truck_position.h>
+#include <uORB/topics/dronecourse_platform_position.h>
 
 
 #include "mavlink_ftp.h"
@@ -152,6 +154,8 @@ private:
 	void handle_message_serial_control(mavlink_message_t *msg);
 	void handle_message_logging_ack(mavlink_message_t *msg);
 	void handle_message_play_tune(mavlink_message_t *msg);
+	void handle_message_truck_position(mavlink_message_t *msg);
+	void handle_message_platform_position(mavlink_message_t *msg);
 
 	void *receive_thread(void *arg);
 
@@ -231,6 +235,8 @@ private:
 	orb_advert_t _transponder_report_pub;
 	orb_advert_t _collision_report_pub;
 	orb_advert_t _control_state_pub;
+	orb_advert_t _dronecourse_truck_position_pub;
+	orb_advert_t _dronecourse_platform_position_pub;
 	static const int _gps_inject_data_queue_size = 6;
 	orb_advert_t _gps_inject_data_pub;
 	orb_advert_t _command_ack_pub;

@@ -11,6 +11,7 @@
 #include <uORB/topics/target_position_ned.h>
 #include <uORB/topics/target_position_image.h>
 #include <uORB/topics/vehicle_attitude.h>
+#include <drivers/drv_hrt.h>
 
 TargetDetector::TargetDetector(const float hfov_default,
 	               const int image_width,
@@ -96,6 +97,7 @@ void TargetDetector::update()
 		target_pos_ned.x = target_pos_local_frame(0);
 		target_pos_ned.y = target_pos_local_frame(1);
 		target_pos_ned.z = target_pos_local_frame(2);
+		target_pos_ned.timestamp = hrt_absolute_time();
 		memcpy(&target_pos_ned.var, var_local_frame.data(), sizeof(target_pos_ned.var));
 
 		int instance;

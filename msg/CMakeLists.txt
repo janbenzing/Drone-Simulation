@@ -125,12 +125,17 @@ set(msg_file_names
 	vehicle_status.msg
 	vehicle_status_flags.msg
 	vtol_vehicle_status.msg
+	dronecourse_waypoint.msg
 	wind_estimate.msg
 	target_position_image.msg
 	target_position_ned.msg
 	target_position_ned_filtered.msg
-	dronecourse_velocity_setpoint.msg
 	gimbal_command.msg
+	dronecourse_platform_position.msg
+	dronecourse_status.msg	
+	dronecourse_velocity_setpoint.msg
+	dronecourse_truck_position.msg
+	dronecourse_timeouts.msg
 	)
 
 # Get absolute paths

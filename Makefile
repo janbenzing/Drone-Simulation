@@ -378,6 +378,10 @@ dronecourse:
 dronecourse_gazebo:
 	@./Tools/dronecourse_docker_run.sh 'make _dronecourse_gazebo $(ARGS)'
 
+# Run student code for evaluation
+dronecourse_gazebo_eval:
+	@./Tools/dronecourse_docker_run.sh 'make _dronecourse_gazebo_eval $(ARGS)'
+
 # Build teacher code
 dronecourse_dev:
 	@./Tools/dronecourse_docker_run.sh 'make _dronecourse_dev $(ARGS)'
@@ -385,6 +389,22 @@ dronecourse_dev:
 # Run teacher code
 dronecourse_dev_gazebo:
 	@./Tools/dronecourse_docker_run.sh 'make _dronecourse_dev_gazebo $(ARGS)'
+
+# Run teacher code for evaluation
+dronecourse_dev_gazebo_eval:
+	@./Tools/dronecourse_docker_run.sh 'make _dronecourse_dev_gazebo_eval $(ARGS)'
+
+# Run Hello Sky startup
+dronecourse_hellosky:
+	@./Tools/dronecourse_docker_run.sh 'make _dronecourse_hellosky $(ARGS)'
+
+# Start notebook server
+dronecourse_notebook:
+	@./Tools/dronecourse_docker_run.sh 'jupyter notebook --ip=0.0.0.0 --NotebookApp.token=""'
+
+# Generate documentation using Doxygen
+dronecourse_doxygen:
+	@./Tools/dronecourse_docker_run.sh 'cd Documentation && doxygen'
 
 #--------------------------------------------------------------------
 # Drone course targets (no docker versions)
@@ -397,6 +417,10 @@ _dronecourse: posix_sitl_dronecourse
 _dronecourse_gazebo: posix_sitl_dronecourse
 	@make posix_sitl_dronecourse gazebo_dronecourse
 
+# Run student code for evaluation
+_dronecourse_gazebo_eval: posix_sitl_dronecourse
+	@make posix_sitl_dronecourse gazebo_dronecourse-eval
+
 # Build teacher code
 _dronecourse_dev: posix_sitl_dronecourse_dev
 	@:
@@ -404,6 +428,14 @@ _dronecourse_dev: posix_sitl_dronecourse_dev
 # Run teacher code
 _dronecourse_dev_gazebo: posix_sitl_dronecourse_dev
 	@make posix_sitl_dronecourse_dev gazebo_dronecourse
+
+# Run teacher code for evaluation
+_dronecourse_dev_gazebo_eval: posix_sitl_dronecourse_dev
+	@make posix_sitl_dronecourse_dev gazebo_dronecourse-eval
+
+# Run Hello Sky startup
+_dronecourse_hellosky: posix_sitl_dronecourse
+	@make posix_sitl_dronecourse gazebo_iris
 
 
 #---------------------------------------------------------------------

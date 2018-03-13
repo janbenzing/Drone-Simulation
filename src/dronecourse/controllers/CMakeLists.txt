@@ -30,7 +30,20 @@
 # POSSIBILITY OF SUCH DAMAGE.
 #
 ############################################################################
-include(../generate_waypoints.cmake)
+
+include_directories(${CMAKE_CURRENT_BINARY_DIR})
+
+set(WORLD_FILE ${CMAKE_SOURCE_DIR}/Tools/sitl_gazebo/worlds/dronecourse.world)
+set(GENERATOR ${CMAKE_SOURCE_DIR}/Tools/show-waypoints.sh)
+add_custom_command(OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/waypoints.hpp
+	COMMAND ${GENERATOR} -c -w ${WORLD_FILE} > ${CMAKE_CURRENT_BINARY_DIR}/waypoints.hpp
+	DEPENDS 
+	${WORLD_FILE}
+	${GENERATOR}
+	)
+
+add_custom_target(waypoint_gen DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/waypoints.hpp)
+
 
 px4_add_module(
 	MODULE dronecourse__controllers
@@ -45,11 +58,8 @@ px4_add_module(
 	TrajectoryCtrl.cpp
 	TargetFollower.cpp
 	DronecourseHandler.cpp
-	# depends on generated file waypoints.hpp
-	${GENERATED_WAYPOINTS_HPP}
-	INCLUDES
-	PRIVATE ${GENERATED_WAYPOINTS_HPP_INCLUDE_DIR}
 	DEPENDS
 	platforms__common
+	waypoint_gen
 )
 # vim: set noet ft=cmake fenc=utf-8 ff=unix :

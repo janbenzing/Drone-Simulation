@@ -16,7 +16,7 @@
 template<uint8_t M, uint8_t N>
 class KalmanFilter
 {
-
+friend class KalmanTest;
 public:
 	KalmanFilter() {};
 
@@ -39,7 +39,7 @@ public:
 		  float dt)
 	{
 		// --------------------------------------------------------------------------
-		// TODO initialize member functions _h, _h_t, _dt, _f and _x
+		// TODO initialize member functions _h, _dt, _f and _x
 		// --------------------------------------------------------------------------
 
 		// --------------------------------------------------------------------------
@@ -47,17 +47,38 @@ public:
 		// --------------------------------------------------------------------------
 
 		// Set system noise
-		setSystemNoise(w);
+		set_system_noise(w);
 	};
 
 	/**
-	 * Perform a prediction step of the filter
+	 * Set system noise
+	 * This calculates the state transition matrix _phi
+	 * and the covariance matrix of the system noise _q
+	 *
+	 * @param w   standard deviation of system noise w
 	 */
+	void set_system_noise(const matrix::Vector<float, M> &w)
+	{
+		// Compute auxillary matrix A
+		matrix::SquareMatrix<float, 2 * M> A = compute_matrix_A(w, _f, _dt);
+
+		// Compute auxillary matrix B
+		matrix::SquareMatrix<float, 2 * M> B = compute_matrix_B(A);
+
+		// Compute phi
+		_phi = compute_phi(B);
+
+		// Compute Q
+		_q = compute_q(B, _phi);
+	}
+
+	/** Perform a prediction step of the filter */
 	void predict()
 	{
-		// ------------------------------------------
-		// TODO perform prediction: update _x and _p
-		// ------------------------------------------
+		// update _x
+		_x = predict_x(_phi, _x);
+		// update _p
+		_p = predict_p(_phi, _q, _p);
 	};
 
 	/**
@@ -68,24 +89,171 @@ public:
 	 */
 	void correct(const matrix::Vector<float, N> &z, const matrix::SquareMatrix<float, N> &r)
 	{
-		// -------------------------------------------------
-		// TODO calc kalman gain k (weight/trust of measurement)
-		// -------------------------------------------------
+		// Compute Kalman gains
+		matrix::Matrix<float, M, N> k = compute_kalman_gain(_h, _p, r);
 
-		// --------------------------------------------------
-		// TODO update state estimation
-		// --------------------------------------------------
+		// Update state estimation
+		_x = compute_state_estimation(_x, z, k, _h);
 
-		// --------------------------------------------------
-		// TODO update estimation of state covariance
-		// --------------------------------------------------
+		// Update state covariance estimation
+		_p = compute_state_covariance_estimation(_p, k, _h);
+	}
+
+	/**
+	 * Compute the new predicted state x.
+	 * @param phi state transition matrix
+	 * @param x previous state
+	 * @return computed new predicted state
+	 */
+	static matrix::Vector<float, M> predict_x(
+		matrix::SquareMatrix<float, M> &phi,
+		matrix::Vector<float, M> &x)
+	{
+		// ------------------------------------------
+		// TODO perform prediction: update x
+		// ------------------------------------------
+		return x;
 	}
 
 
 	/**
-	 * Return estimated state
+	 * Compute the new predicted covariance matrix.
+	 * @param phi state transition matrix
+	 * @param q covariance matrix of the system noise
+	 * @param p previous covariance matrix
+	 * @return computed new predicted covariance matrix
 	 */
-	const matrix::Vector<float, M> &getStateEstimate() const
+	static matrix::SquareMatrix<float, M> predict_p(
+		matrix::SquareMatrix<float, M> &phi,
+		matrix::SquareMatrix<float, M> &q,
+		matrix::SquareMatrix<float, M> &p)
+	{
+		// ------------------------------------------
+		// TODO perform prediction: update phi
+		// ------------------------------------------
+		return phi;
+	}
+
+	/**
+	 * Correct the kalman gain.
+	 * @param h measurement (or design) matrix
+	 * @param p covariance matrix
+	 * @param r covariance matrix of the measurement
+	 * @return computed kalman gain
+	 */
+	static matrix::Matrix<float, M, N> compute_kalman_gain(
+		const matrix::Matrix<float, N, M> &h,
+		const matrix::SquareMatrix<float, M> &p,
+		const matrix::SquareMatrix<float, N> &r)
+	{
+		// -------------------------------------------------
+		// TODO compute kalman gain k (weight/trust of measurement)
+		// -------------------------------------------------
+		return matrix::Matrix<float, M, N>();
+	}
+
+	/**
+	 * Correct state estimation.
+	 * @param x previous state estimation
+	 * @param z measurement
+	 * @param k kalman gains matrix
+	 * @param h measurement (or design) matrix
+	 * @return corrected state estimation
+	 */
+	static matrix::Vector<float, M> compute_state_estimation(
+		const matrix::Vector<float, M> &x,
+		const matrix::Vector<float, N> &z,
+		const matrix::Matrix<float, M, N> &k,
+		const matrix::Matrix<float, N, M> &h)
+	{
+		// --------------------------------------------------
+		// TODO return updated state estimation
+		// --------------------------------------------------
+		return x;
+	}
+
+	/**
+	 * Correct the state covariance estimation.
+	 * @param p covariance matrix
+	 * @param k kalman gains
+	 * @param h measurement (or design) matrix
+	 * @return corrected state covariance estimation
+	 */
+	static matrix::SquareMatrix<float, M> compute_state_covariance_estimation(
+		const matrix::SquareMatrix<float, M> &p,
+		const matrix::Matrix<float, M, N> &k,
+		const matrix::Matrix<float, N, M> &h)
+	{
+		// --------------------------------------------------
+		// TODO return updated estimation of state covariance
+		// --------------------------------------------------
+		return p;
+	}
+
+	/**
+	 * Compute auxillary matrix A.
+	 * @param w standard deviation of system noise w
+	 * @param f dynamic matrix
+	 * @param dt time increment
+	 * @return auxillary matrix A
+	 */
+	static matrix::SquareMatrix<float, 2 * M> compute_matrix_A(
+		const matrix::Vector<float, M>& w,
+		const matrix::SquareMatrix<float, M>& f,
+		float dt)
+	{
+		// ----------------------------------------
+		// TODO compute the auxillary matrix A
+		// ----------------------------------------
+
+		return matrix::SquareMatrix<float, 2 * M>();
+	}
+
+	/**
+	 * Compute auxillary matrix B.
+	 * @param A auxillary matrix A
+	 * @return auxillary matrix B
+	 */
+	static matrix::SquareMatrix<float, 2 * M> compute_matrix_B(matrix::SquareMatrix<float, 2 * M> A)
+	{
+		// ------------------------------------------------
+		// TODO compute the auxillary matrix B
+		// ------------------------------------------------
+		return matrix::SquareMatrix<float, 2 * M>();
+	}
+
+	/**
+	 * Compute the state transition matrix phi.
+	 * @param B auxillary matrix B
+	 * @return computed state transition matrix phi
+	 */
+	static matrix::SquareMatrix<float, M> compute_phi(matrix::SquareMatrix<float, 2 * M> B)
+	{
+		// ------------------------------------------------
+		// TODO compute phi
+		// ------------------------------------------------
+		return matrix::SquareMatrix<float, M>();
+	}
+
+	/**
+	 * Compute covariance matrix of the system noise q.
+	 * @param B auxillary matrix B
+	 * @param phi the state transition matrix phi
+	 * @return computed covariance matrix of the system noise
+	 */
+	static matrix::SquareMatrix<float, M> compute_q(
+		matrix::SquareMatrix<float, 2 * M> B,
+		matrix::SquareMatrix<float, M> phi)
+	{
+		// ------------------------------------------------
+		// TODO compute phi
+		// ------------------------------------------------
+		return matrix::SquareMatrix<float, M>();
+	}
+
+
+	/** @return estimated state */
+	const matrix::Vector<float, M> &get_state_estimate() const
 	{
 		// ------------------------------------
 		// TODO return state estimation
@@ -93,32 +261,14 @@ public:
 		return NULL; // replace this line
 	};
 
-	/**
-	 * Return variance (std^2) of state estimation
-	 */
-	matrix::Vector<float, M> getStateVariances() const
+	/** @return variance (std^2) of state estimation */
+	matrix::Vector<float, M> get_state_variances() const
 	{
 		// -----------------------------------------
 		// TODO return variance of state estimation
 		//      only diagonal elements
 		// -----------------------------------------
 		return matrix::Vector<float, M>(); // replace this line
-	}
-
-	/**
-	 * Set system noise
-	 * This calculates the state transition matrix _phi
-	 * and the covariance matrix of the system noise _q
-	 *
-	 * @param w   standard deviation of system noise w
-	 */
-	void setSystemNoise(const matrix::Vector<float, M> &w)
-	{
-		// ------------------------------------------------
-		// TODO calculate state transition matrix _phi
-		// and the covariance matrix of the system noise q
-		// Hint: use matrix::expm(A) to compute matrix exponential of A
-		// ------------------------------------------------
 	}
 
 private:
@@ -138,10 +288,4 @@ private:
 	matrix::SquareMatrix<float, M> _p;
 	/** A posteriori (estimated) state */
 	matrix::Vector<float, M> _x;
-
-	// transposed matrices for faster calculation
-	/** Transposed state transition matrix [constant] */
-	matrix::SquareMatrix<float, M> _phi_t;
-	/** Transposed measurement (design) matrix [constant] */
-	matrix::Matrix<float, M, N> _h_t;
 };

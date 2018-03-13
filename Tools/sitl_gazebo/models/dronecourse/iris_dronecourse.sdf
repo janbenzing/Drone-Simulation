@@ -54,20 +54,15 @@
         </camera>
       </sensor>
     </link>
-    <joint name='gimbal_joint' type="revolute2">
+    <joint name='gimbal_joint' type="ball">
       <parent>iris::base_link</parent>
       <child>target_cam</child>
       <pose frame=''>0 0 0 0 0 0</pose>
       <parent>chassis</parent>
-      <axis>
-        <xyz>0 1 0</xyz>
-      </axis>
-      <axis2>
-        <xyz>1 0 0</xyz>
-      </axis2>
     </joint>
     <plugin name='TargetCameraPlugin' filename='libgazebo_target_camera_plugin.so'>
       <target_link>truck::target_platform</target_link>
+      <target_link>platform::box</target_link>
       <gimbal_joint>gimbal_joint</gimbal_joint>
       <noise_xy>4</noise_xy>
       <noise_z>0.1</noise_z>

@@ -10,6 +10,8 @@
 #include "position_ctrl_test.h"
 #include "trajectory_ctrl_test.h"
 #include "target_detection_test.h"
+#include "kalman_test.h"
+#include "gimbal_ctrl_test.h"
 
 extern "C" __EXPORT int dronecourse_tests_main(int argc, char *argv[]);
 
@@ -30,6 +32,8 @@ static const struct {
 	{"position_ctrl", position_ctrl_test},
 	{"trajectory_ctrl", trajectory_ctrl_test},
 	{"target_detection", target_detection_test},
+	{"kalman", kalman_test},
+	{"gimbal_ctrl", gimbal_ctrl_test},
 	{NULL, NULL}
 };
 

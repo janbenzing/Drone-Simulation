@@ -32,7 +32,8 @@
 ############################################################################
 include(dronecourse_add_test.cmake)
 include(tests.cmake)
-include(../generate_waypoints.cmake)
+
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/../controllers)
 
 px4_add_module(
 	MODULE dronecourse__tests
@@ -43,11 +44,10 @@ px4_add_module(
 	position_ctrl_test.cpp
 	trajectory_ctrl_test.cpp
 	target_detection_test.cpp
-	# depends on generated file waypoints.hpp
-	${GENERATED_WAYPOINTS_HPP}
-	INCLUDES
-	PRIVATE ${GENERATED_WAYPOINTS_HPP_INCLUDE_DIR}
+	kalman_test.cpp
+	gimbal_ctrl_test.cpp
 	DEPENDS
 	platforms__common
+	waypoint_gen
 )
 # vim: set noet ft=cmake fenc=utf-8 ff=unix :

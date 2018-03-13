@@ -607,6 +607,17 @@ void Logger::add_default_topics()
 	add_topic("vehicle_gps_position");
 	add_topic("vehicle_land_detected");
 	add_topic("vehicle_status");
+
+	/* for dronecourse */
+	add_topic("target_position_image");
+	add_topic("target_position_ned");
+	add_topic("target_position_ned_filtered");
+	add_topic("target_position_filtered");
+	add_topic("dronecourse_truck_position");
+	add_topic("dronecourse_platform_position");
+	add_topic("dronecourse_waypoint");
+	add_topic("dronecourse_status");
+	add_topic("dronecourse_timeouts");
 }
 
 void Logger::add_calibration_topics()

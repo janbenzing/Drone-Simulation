@@ -17,9 +17,11 @@ COMMAND=$@
 # Update docker image
 docker image pull ${PX4_DOCKER_REPO}
 
-# Start gzclient
-xterm -title "Gzclient" -e "${SRC_DIR}/Tools/dronecourse_gzclient_run.sh" &
-GZCLIENT_PID=`echo $!`
+# Start gzclient if $COMMAND contains substring "gazebo"
+if [[ $COMMAND = *"gazebo"* ]]; then
+  xterm -title "Gzclient" -e "${SRC_DIR}/Tools/dronecourse_gzclient_run.sh" &
+  GZCLIENT_PID=`echo $!`
+fi
 
 # Start PX4 in docker container
 docker run -it --rm -w ${SRC_DIR} \
@@ -39,7 +41,10 @@ docker run -it --rm -w ${SRC_DIR} \
 	-v ${X11_TMP}:${X11_TMP}:ro \
 	--device=/dev/dri \
 	-p 11345:11345 \
+  -p 8888:8888 \
 	${PX4_DOCKER_REPO} /bin/bash -c "export HEADLESS=true \
 					&& $COMMAND"
 
-kill ${GZCLIENT_PID}
+if [[ $COMMAND = *"gazebo"* ]]; then
+	kill ${GZCLIENT_PID}
+fi
