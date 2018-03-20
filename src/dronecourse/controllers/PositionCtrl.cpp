@@ -20,7 +20,7 @@ PositionCtrl::PositionCtrl(GimbalCtrl &gimbal) :
 	// --------------------------------------------------------------------------
 	// TODO: Add uORB subscription to drone's estimated position
 	// --------------------------------------------------------------------------
-
+	_local_pos_sub = orb_subscribe(ORB_ID(vehicle_local_position));
 	// --------------------------------------------------------------------------
 	// TODO: Read gain and acceptance radius parameters
 	// --------------------------------------------------------------------------
@@ -50,7 +50,10 @@ matrix::Vector3f PositionCtrl::compute_position_error(matrix::Vector3f goal_pos,
 	// --------------------------------------------------------------------------
 	// TODO: Calculate the target vector (vector from drone to goal position)
 	// --------------------------------------------------------------------------
-	return matrix::Vector3f(0, 0, 0);
+	matrix::Vector3f _target_vector = goal_pos - current_pos;
+	
+	return _target_vector;
+
 }
 
 matrix::Vector3f PositionCtrl::compute_velocity_command(matrix::Vector3f position_error, float position_gain)
@@ -76,12 +79,18 @@ void PositionCtrl::update_subscriptions()
 	// --------------------------------------------------------------------------
 	// TODO: Check if drone's local position topic has been updated
 	// --------------------------------------------------------------------------
+	orb_check(_local_pos_sub, &updated);
 
 	if (updated) {
 
 		// ------------------------------------------------------------------------
 		// TODO: Update current position member variable with new position data
 		// ------------------------------------------------------------------------
+		vehicle_local_position_s local_pos;
+		orb_copy(ORB_ID(vehicle_local_position), _local_pos_sub, &local_pos);
+		_current_pos(0) = local_pos.x;
+		_current_pos(1) = local_pos.y;
+		_current_pos(2) = local_pos.z;
 	}
 }
 
