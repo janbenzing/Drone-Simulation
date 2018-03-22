@@ -43,6 +43,10 @@ void PositionCtrl::print_current_position()
 	// --------------------------------------------------------------------------
 	// TODO: Print current position to console to verify working subscription
 	// --------------------------------------------------------------------------
+	PX4_INFO("Info message with x = %f", _current_pos(0));
+	PX4_INFO("Info message with y = %f", _current_pos(1));
+	PX4_INFO("Info message with z = %f", _current_pos(2));
+
 }
 
 matrix::Vector3f PositionCtrl::compute_position_error(matrix::Vector3f goal_pos, matrix::Vector3f current_pos)
