@@ -10,6 +10,7 @@
 
 #include "PositionCtrl.hpp"
 #include <uORB/topics/vehicle_local_position.h>
+//#include <uORB/topics/parameter_update.h>
 #include <uORB/Subscription.hpp>
 
 PositionCtrl::PositionCtrl(GimbalCtrl &gimbal) :
@@ -24,6 +25,8 @@ PositionCtrl::PositionCtrl(GimbalCtrl &gimbal) :
 	// --------------------------------------------------------------------------
 	// TODO: Read gain and acceptance radius parameters
 	// --------------------------------------------------------------------------
+	_p_pos_gain = param_find(_pos_gain); //ERROR HERE !!!
+	param_get(_p_pos_gain, &_pos_gain);
 }
 
 void PositionCtrl::update()
@@ -34,6 +37,7 @@ void PositionCtrl::update()
 	print_current_position();
 	_position_error = compute_position_error(_goal_pos, _current_pos);
 	matrix::Vector3f velocity_command = compute_velocity_command(_position_error, get_position_gain());
+	//matrix::Vector3f velocity_command = compute_velocity_command(_position_error, 0.3);
 
 	send_velocity_command(velocity_command);
 }
@@ -43,9 +47,9 @@ void PositionCtrl::print_current_position()
 	// --------------------------------------------------------------------------
 	// TODO: Print current position to console to verify working subscription
 	// --------------------------------------------------------------------------
-	PX4_INFO("Info message with x = %f", _current_pos(0));
-	PX4_INFO("Info message with y = %f", _current_pos(1));
-	PX4_INFO("Info message with z = %f", _current_pos(2));
+	//PX4_INFO("Info message with x = %f", (double)_current_pos(0));
+	//PX4_INFO("Info message with y = %f", (double)_current_pos(1));
+	//PX4_INFO("Info message with z = %f", (double)_current_pos(2));
 
 }
 
@@ -65,7 +69,9 @@ matrix::Vector3f PositionCtrl::compute_velocity_command(matrix::Vector3f positio
 	// --------------------------------------------------------------------------
 	// TODO: Calculate velocity command using proportional gain
 	// --------------------------------------------------------------------------
-	return matrix::Vector3f(0, 0, 0);
+	matrix::Vector3f _velo_command = position_error*position_gain;
+	return _velo_command;
+	//return matrix::Vector3f(0, 0, 0);
 }
 
 bool PositionCtrl::is_goal_reached()
@@ -103,4 +109,5 @@ void PositionCtrl::update_parameters()
 	// --------------------------------------------------------------------------
 	// TODO: Get new parameter values and update corresponding member variables
 	// --------------------------------------------------------------------------
+
 }
