@@ -19,6 +19,7 @@
 * @group Dronecourse
 */
 PARAM_DEFINE_FLOAT(POS_GAIN, 0.3f);
+PARAM_DEFINE_FLOAT(POS_ACCEPT_RAD, 2.0f);
 
 // ----------------------------------------------------------------------------
 // TODO: Add your parameter for the position controller acceptance radius

@@ -25,14 +25,15 @@ PositionCtrl::PositionCtrl(GimbalCtrl &gimbal) :
 	// --------------------------------------------------------------------------
 	// TODO: Read gain and acceptance radius parameters
 	// --------------------------------------------------------------------------
-	_p_pos_gain = param_find(_pos_gain); //ERROR HERE !!!
-	param_get(_p_pos_gain, &_pos_gain);
+	update_parameters();
+
 }
 
 void PositionCtrl::update()
 {
 	update_subscriptions();
 	update_parameters();
+	is_goal_reached();
 
 	print_current_position();
 	_position_error = compute_position_error(_goal_pos, _current_pos);
@@ -79,6 +80,10 @@ bool PositionCtrl::is_goal_reached()
 	// --------------------------------------------------------------------------
 	// TODO: Implement the decision when goal is reached  
 	// --------------------------------------------------------------------------
+	//if (_position_error.norm() < _pos_accept_rad)
+	//{
+	//	PX4_INFO("GOAL IS REACHED");
+	//}
 	return true;
 }
 
@@ -109,5 +114,21 @@ void PositionCtrl::update_parameters()
 	// --------------------------------------------------------------------------
 	// TODO: Get new parameter values and update corresponding member variables
 	// --------------------------------------------------------------------------
+	_p_pos_gain = param_find("POS_GAIN");
+	
+	if (_p_pos_gain == PARAM_INVALID)
+	 {
+	 	PX4_INFO("WRONG PARAMETER POS GAIN");
+	 }
 
+	param_get(_p_pos_gain, &_pos_gain);
+
+	_p_accept_rad = param_find("POS_ACCEPT_RAD");
+	
+	if (_p_accept_rad == PARAM_INVALID)
+	 {
+	 	PX4_INFO("WRONG PARAMETER ACCEPT RAD");
+	 }
+
+	param_get(_p_accept_rad, &_pos_accept_rad);
 }

@@ -15,10 +15,11 @@ TrajectoryCtrl::TrajectoryCtrl(GimbalCtrl &gimbal, WaypointNavigator &navigator)
 	PositionCtrl(gimbal),
 	_navigator(&navigator),
 	_dronecourse_waypoint_pub(nullptr),
-	waypoint_published(false)
+	waypoint_published(false),
 	// --------------------------------------------------------------------------
 	// TODO: Initialize the waypoint index (initially invalid)
 	// --------------------------------------------------------------------------
+	_waypoint_index(-1)
 {
 }
 
@@ -31,10 +32,17 @@ void TrajectoryCtrl::update()
 	// --------------------------------------------------------------------------
 	// TODO: Set the position command for the position controller
 	// --------------------------------------------------------------------------
-
+	if (PositionCtrl::is_goal_reached())
+	{
+		_navigator->waypoint_copy(_waypoint_index, &waypoint);
+		PositionCtrl::set_position_command(waypoint);
+		_waypoint_index = _waypoint_index + 1;
+	}
+	
 	// --------------------------------------------------------------------------
 	// TODO: Upate the position controller
 	// --------------------------------------------------------------------------
+	PositionCtrl::update();
 }
 
 bool TrajectoryCtrl::is_goal_reached()
@@ -42,6 +50,10 @@ bool TrajectoryCtrl::is_goal_reached()
 	// --------------------------------------------------------------------------
 	// TODO: Implement the logic for having visited all waypoints
 	// --------------------------------------------------------------------------
+	if(_navigator->waypoint_count() == _waypoint_index)
+	{
+		PX4_INFO("ALL WAYPOINTS HAVE BEEN REACHED");
+	}
 	return true;
 }
 

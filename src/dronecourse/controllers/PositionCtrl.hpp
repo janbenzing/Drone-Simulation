@@ -133,7 +133,7 @@ private:
 	// --------------------------------------------------------------------------
 	// TODO: Create a member variable for acceptance radius parameter handle
 	// --------------------------------------------------------------------------
-
+	param_t _p_accept_rad;
 	/**
 	 * Onboard parameter value for position controller gain.
 	 * You should not use this variable directly in your code, you
