@@ -8,6 +8,7 @@
  */
 
 #include "TrajectoryCtrl.hpp"
+#include "PositionCtrl.hpp"
 #include <drivers/drv_hrt.h>
 #include <uORB/topics/dronecourse_waypoint.h>
 
@@ -32,6 +33,11 @@ void TrajectoryCtrl::update()
 	// --------------------------------------------------------------------------
 	// TODO: Set the position command for the position controller
 	// --------------------------------------------------------------------------
+	//_navigator->waypoint_copy(_waypoint_index, &waypoint);
+	//PositionCtrl::set_position_command(waypoint);
+	PX4_INFO("Index is = %d", _waypoint_index);
+	PX4_INFO("is_goal_reached = %d", is_goal_reached());
+
 	if (PositionCtrl::is_goal_reached())
 	{
 		_waypoint_index = _waypoint_index + 1;
@@ -52,9 +58,14 @@ bool TrajectoryCtrl::is_goal_reached()
 	// --------------------------------------------------------------------------
 	if(_navigator->waypoint_count() == _waypoint_index)
 	{
-		PX4_INFO("GOAL IS REACHED");
+		PX4_INFO("ALL GOALS ARE REACHED");
+		return false;
 	}
-	return true;
+	//else
+	//{
+		//return true;
+	//}
+	
 }
 
 void TrajectoryCtrl::publish_waypoint_list(void)

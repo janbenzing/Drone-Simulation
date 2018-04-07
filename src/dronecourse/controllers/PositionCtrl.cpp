@@ -37,8 +37,9 @@ void PositionCtrl::update()
 
 	print_current_position();
 	_position_error = compute_position_error(_goal_pos, _current_pos);
+	//PX4_INFO("Position error = %f", _position_error);
+	//is_goal_reached();
 	matrix::Vector3f velocity_command = compute_velocity_command(_position_error, get_position_gain());
-	//matrix::Vector3f velocity_command = compute_velocity_command(_position_error, 0.3);
 
 	send_velocity_command(velocity_command);
 }
@@ -60,7 +61,7 @@ matrix::Vector3f PositionCtrl::compute_position_error(matrix::Vector3f goal_pos,
 	// TODO: Calculate the target vector (vector from drone to goal position)
 	// --------------------------------------------------------------------------
 	matrix::Vector3f _target_vector = goal_pos - current_pos;
-	
+
 	return _target_vector;
 
 }
@@ -80,11 +81,15 @@ bool PositionCtrl::is_goal_reached()
 	// --------------------------------------------------------------------------
 	// TODO: Implement the decision when goal is reached  
 	// --------------------------------------------------------------------------
-	//if (_position_error.norm() < _pos_accept_rad)
-	//{
-	//	PX4_INFO("GOAL IS REACHED");
-	//}
-	return true;
+	if (_position_error.norm() < get_position_accept_rad() && _position_error.norm() != 0)
+	{
+		PX4_INFO("GOAL IS REACHED");
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 void PositionCtrl::update_subscriptions()
