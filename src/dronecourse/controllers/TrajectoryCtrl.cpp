@@ -38,7 +38,7 @@ void TrajectoryCtrl::update()
 	PX4_INFO("Index is = %d", _waypoint_index);
 	PX4_INFO("is_goal_reached = %d", is_goal_reached());
 
-	if (PositionCtrl::is_goal_reached())
+	if (PositionCtrl::is_goal_reached() && _waypoint_index != 2)
 	{
 		_waypoint_index = _waypoint_index + 1;
 		_navigator->waypoint_copy(_waypoint_index, &waypoint);
@@ -59,12 +59,12 @@ bool TrajectoryCtrl::is_goal_reached()
 	if(_navigator->waypoint_count() == _waypoint_index)
 	{
 		PX4_INFO("ALL GOALS ARE REACHED");
+		return true;
+	}
+	else
+	{
 		return false;
 	}
-	//else
-	//{
-		//return true;
-	//}
 	
 }
 

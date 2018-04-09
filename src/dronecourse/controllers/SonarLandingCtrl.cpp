@@ -17,11 +17,12 @@
 #include <iostream>
 
 SonarLandingCtrl::SonarLandingCtrl(GimbalCtrl &gimbal) :
-	PositionCtrl(gimbal)
+	PositionCtrl(gimbal),
 	// ------------------------------------------------------
 	// TODO subscribe to distance_sensor
 	// HINT use the initializer list by completing the next statement
 	// ------------------------------------------------------
+	_distance_sensor_sub(orb_subscribe(ORB_ID(distance_sensor)))
 	// _distance_sensor_sub(...)
 {}
 
@@ -33,7 +34,7 @@ void SonarLandingCtrl::update()
 	// ------------------------------------------------------
 	// TODO print distance sensor
 	// ------------------------------------------------------
-
+	PX4_INFO("Distance sensor is = %f", (double)_current_distance);
 
 	// ------------------------------------------------------
 	// TODO implement platform detection algorithm
@@ -53,10 +54,17 @@ void SonarLandingCtrl::update()
 
 void SonarLandingCtrl::update_subscriptions()
 {
+	bool updated;
 	// ------------------------------------------------------
 	// TODO check distance sensor
 	// ------------------------------------------------------
-
+	orb_check(_distance_sensor_sub, &updated);
+	
+	if (updated) {
+		distance_sensor_s current_sensor;
+		orb_copy(ORB_ID(distance_sensor), _distance_sensor_sub, &current_sensor);
+		_current_distance = current_sensor.current_distance;
+	}
 
 	// ------------------------------------------------------
 	// TODO check land detection sensor
