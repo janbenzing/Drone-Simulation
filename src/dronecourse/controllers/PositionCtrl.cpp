@@ -83,7 +83,7 @@ bool PositionCtrl::is_goal_reached()
 	// --------------------------------------------------------------------------
 	if (_position_error.norm() < get_position_accept_rad() && _position_error.norm() != 0)
 	{
-		PX4_INFO("GOAL IS REACHED");
+		//PX4_INFO("GOAL IS REACHED");
 		return true;
 	}
 	else

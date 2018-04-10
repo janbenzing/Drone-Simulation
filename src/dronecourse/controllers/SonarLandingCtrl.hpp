@@ -62,6 +62,7 @@ protected:
 	void update_parameters();
 
 private:
+	int _local_pos_sub;
 	/** Subscriber handle for the distance_sensor uORB topic */
 	int _distance_sensor_sub;
 	/** Current distance measured by the sonar */
@@ -70,6 +71,10 @@ private:
 	bool _platform_detected;
 	/** Set this flag to true if the platform has been found */
 	bool _platform_found;
+
+	
+
+	matrix::Vector3f _current_pos;
 
 	/**
 	 * Execute the search algorithm.
