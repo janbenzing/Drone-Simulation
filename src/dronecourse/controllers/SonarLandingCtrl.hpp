@@ -62,6 +62,8 @@ protected:
 	void update_parameters();
 
 private:
+	int search_counter;
+	
 	int _local_pos_sub;
 	/** Subscriber handle for the distance_sensor uORB topic */
 	int _distance_sensor_sub;
@@ -72,9 +74,17 @@ private:
 	/** Set this flag to true if the platform has been found */
 	bool _platform_found;
 
-	
 
 	matrix::Vector3f _current_pos;
+	matrix::Vector3f pos;
+	
+	float _current_pos_save_1;
+	float _current_pos_save_2;
+	float _current_pos_save_3;
+	float _current_pos_save_4;
+
+	float pos_landing_x;
+	float pos_landing_y;
 
 	/**
 	 * Execute the search algorithm.
