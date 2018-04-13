@@ -67,6 +67,8 @@ private:
 	int _local_pos_sub;
 	/** Subscriber handle for the distance_sensor uORB topic */
 	int _distance_sensor_sub;
+
+	int _ground_contact_sub;
 	/** Current distance measured by the sonar */
 	float _current_distance;
 	/** Set this flag to true if the drone is over the platform */
