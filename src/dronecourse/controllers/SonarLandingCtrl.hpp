@@ -68,7 +68,7 @@ private:
 	/** Subscriber handle for the distance_sensor uORB topic */
 	int _distance_sensor_sub;
 
-	bool _ground_contact_sub;
+	int _ground_contact_sub;
 	/** Current distance measured by the sonar */
 	float _current_distance;
 	/** Set this flag to true if the drone is over the platform */
@@ -77,7 +77,7 @@ private:
 	bool _platform_found;
 
 	bool _landed;
-
+	bool _ground_detected;
 
 	matrix::Vector3f _current_pos;
 	matrix::Vector3f pos;
@@ -89,6 +89,9 @@ private:
 
 	float pos_landing_x;
 	float pos_landing_y;
+
+	param_t _p_accept_rad;
+	float	_pos_accept_rad;
 
 	/**
 	 * Execute the search algorithm.

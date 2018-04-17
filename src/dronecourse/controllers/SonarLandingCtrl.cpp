@@ -26,8 +26,9 @@ SonarLandingCtrl::SonarLandingCtrl(GimbalCtrl &gimbal) :
 	_local_pos_sub(orb_subscribe(ORB_ID(vehicle_local_position))),
 	_distance_sensor_sub(orb_subscribe(ORB_ID(distance_sensor))),
 	_ground_contact_sub(orb_subscribe(ORB_ID(vehicle_land_detected)))
-	// _distance_sensor_sub(...)
-{}
+{
+	_p_accept_rad = param_find("POS_ACCEPT_RAD");
+}
 
 void SonarLandingCtrl::update()
 {
@@ -100,27 +101,33 @@ void SonarLandingCtrl::update_subscriptions()
 	// ------------------------------------------------------
 
 	/////////////////////////////////////////////////////////PRINT NE MARCHE PAS (ground_contact ne se met jamais a 1)
-	bool updated;
+	bool updated_ground;
 
-	orb_check(_ground_contact_sub, &updated);
+	orb_check(_ground_contact_sub, &updated_ground);
 
-	if (updated) {
+	//if (updated_ground) {
 
 		vehicle_land_detected_s landing;
-
 		orb_copy(ORB_ID(vehicle_land_detected), _ground_contact_sub, &landing);
-		PX4_INFO("landing.ground_contact = %d", landing.ground_contact);
-		if (landing.ground_contact)
+		PX4_INFO("landing.ground_contact");
+		/*if (landing.ground_contact)
 		{
 			PX4_INFO("WE HAVE LANDED");
 			_landed = true;
-		}
-	}
+		}*/
+		_ground_detected = landing.ground_contact;
+
+		PX4_INFO("%d", _ground_detected);
+
+	//}
 	/////////////////////////////////////////////////////////
 }
 
 void SonarLandingCtrl::update_parameters()
-{
+{	
+	_pos_accept_rad = 0.5f;
+
+	param_set(_p_accept_rad, &_pos_accept_rad);
 }
 
 bool SonarLandingCtrl::is_goal_reached()
@@ -133,7 +140,14 @@ bool SonarLandingCtrl::is_goal_reached()
 		_platform_detected = true;
 		//PX4_INFO("Plateforme detected"); ATTENTION PARFOIS IL DETECTE ALORS QU'IL NE DEVRAIT PAS
 	}*/
-	return false;
+	if (_ground_detected)
+	{
+		return true;
+	}else{
+		return false;
+	}
+	
+	
 }
 
 
@@ -161,7 +175,7 @@ bool SonarLandingCtrl::update_search()
 		case 0:
 			pos(0) = 0.0;
 			pos(1) = 97.0;
-			pos(2) = -3.0;
+			pos(2) = -3.5;
 
 			PositionCtrl::set_position_command(pos);
 			//PositionCtrl::update();
@@ -178,7 +192,7 @@ bool SonarLandingCtrl::update_search()
 		case 1:
 			pos(0) = 0.0f;
 			pos(1) = 104.0f;
-			pos(2) = -3.0f;
+			pos(2) = -3.5f;
 
 			PositionCtrl::set_position_command(pos);
 			//PositionCtrl::update();
@@ -186,9 +200,7 @@ bool SonarLandingCtrl::update_search()
 			PX4_INFO("search_counter = %d", search_counter);
 
 			if(_platform_detected)
-			{
-				//orb_copy(ORB_ID(vehicle_local_position), _local_pos_sub, &local_pos);
-						
+			{	
 				_current_pos_save_1 = _current_pos(1);
 						
 				search_counter = search_counter + 1;
@@ -200,14 +212,11 @@ bool SonarLandingCtrl::update_search()
 
 			pos(0) = 0.0f;
 			pos(1) = 104.0f;
-			pos(2) = -3.0f;			
+			pos(2) = -3.5f;			
 
 			PositionCtrl::set_position_command(pos);
-			//PositionCtrl::update();
 
 			PX4_INFO("search_counter = %d", search_counter);
-
-			//vehicle_local_position_s local_pos_save_2;
 
 				if (not _platform_detected)
 				{
@@ -222,7 +231,7 @@ bool SonarLandingCtrl::update_search()
 
 			pos(0) = -4.0f;
 			pos(1) = 100.0f;
-			pos(2) = -3.0f;	
+			pos(2) = -3.5f;	
 
 			PositionCtrl::set_position_command(pos);
 			//PositionCtrl::update();
@@ -239,7 +248,7 @@ bool SonarLandingCtrl::update_search()
 
 			pos(0) = 4.0f;
 			pos(1) = 100.0f;
-			pos(2) = -3.0f;	
+			pos(2) = -3.5f;	
 
 			PositionCtrl::set_position_command(pos);
 			//PositionCtrl::update();
@@ -262,7 +271,7 @@ bool SonarLandingCtrl::update_search()
 
 			pos(0) = 4.0f;
 			pos(1) = 100.0f;
-			pos(2) = -3.0f;
+			pos(2) = -3.5f;
 
 			PositionCtrl::set_position_command(pos);
 			//PositionCtrl::update();
@@ -285,7 +294,7 @@ bool SonarLandingCtrl::update_search()
 
 			pos(0) = pos_landing_x;
 			pos(1) = pos_landing_y;
-			pos(2) = -3.0f;
+			pos(2) = -3.5f;
 
 			PositionCtrl::set_position_command(pos);
 
@@ -317,16 +326,24 @@ bool SonarLandingCtrl::update_landing()
 	// ------------------------------------------------------
 	pos(0) = pos_landing_x;
 	pos(1) = pos_landing_y;
-	pos(2) = -0.8f;
+	pos(2) = -0.5f;
 
 	PositionCtrl::set_position_command(pos);
 	PositionCtrl::update();
 
-	if (_landed)
+	/*if (_landed)
 	{
 		return true;
+	}*/
+	/////////////////////////////////////////////////////////// TEST
+	if (_ground_detected)
+	{
+		PX4_INFO("LANDING POSITION ACHIEVED");
+		return true;
+	}else{
+		return false;
 	}
-
+	///////////////////////////////////////////////////////////
 	//orb_check(_ground_contact_sub, &updated);
 
 	/*if (updated) {

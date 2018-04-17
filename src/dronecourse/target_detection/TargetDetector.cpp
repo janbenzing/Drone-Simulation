@@ -272,7 +272,9 @@ matrix::SquareMatrix<float, 3> TargetDetector::compute_covariance_local_frame(
 	// -----------------------------------------------------------------
 	// TODO convert covariance from image frame to local frame
 	// -----------------------------------------------------------------
-	return matrix::SquareMatrix<float, 3>();
+	// Sadly, total.rot.I() != total_rot.transpose() for the desired precision
+	// use the explicit matric inverse to pass the unit test!
+	//return total_rot * var_if * total.I();
 }
 
 void TargetDetector::update_subscriptions()

@@ -172,4 +172,10 @@ void GimbalCtrl::publish_gimbal_command(float pitch, float yaw)
 	// --------------------------------------------------------
 	// TODO publish gimbal_command over uORB
 	// --------------------------------------------------------
+	gimbal_command_s gimbal_command_msg;
+	gimbal_command_msg.timestamp = hrt_absolute_time();
+	gimbal_command_msg.pitch = pitch;
+	gimbal_command_msg.yaw = yaw;
+	int instance;
+	orb_publish_auto(ORB_ID(gimbal_command), &_gimbal_command_pub, &gimbal_command_msg, &instance, ORB_PRIO_HIGH);
 }
