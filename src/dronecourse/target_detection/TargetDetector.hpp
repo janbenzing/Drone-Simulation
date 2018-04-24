@@ -140,9 +140,12 @@ public:
 private:
 	void update_subscriptions();
 
+	matrix::Vector2f target_pos_c_image;
+
 	int _attitude_sub;
 	int _position_sub;
 	int _target_position_image_sub;
+	int _local_pos_sub;
 
 	// uORB publications
 	orb_advert_t   _target_position_pub;

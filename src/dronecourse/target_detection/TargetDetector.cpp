@@ -24,6 +24,11 @@ TargetDetector::TargetDetector(const float hfov_default,
 	// TODO subscribe to uORB topics:
 	//  target_position_image messages, vehicle_attitude, vehicle_local_position
 	// --------------------------------------------------------------------------
+	_target_position_image_sub(orb_subscribe(ORB_ID(target_position_image)));
+
+	_attitude_sub(orb_subscribe(orb_subscribe(ORB_ID(vehicle_attitude)));
+
+	_local_pos_sub(orb_subscribe(ORB_ID(vehicle_local_position)));
 
 	// --------------------------------------------------------------------------
 	// TODO set uORB publishing handle '_target_position_pub' to nullptr
@@ -48,11 +53,17 @@ void TargetDetector::update()
 	// and set new_measure accordingly
 	// ------------------------------------------------------------
 
+	orb_check(_target_position_image_sub, &new_measure);
+
+
+
 	if (new_measure) {
 		// --------------------------------------------------------------------
 		// TODO copy message content to a local variable
 		// --------------------------------------------------------------------
 		struct target_position_image_s target_pos;
+
+		orb_copy(ORB_ID(target_position_image), _target_position_image_sub, &target_pos);
 
 		// ~~~ Computations ~~~
 		/** The target position in the image (u, v) */
@@ -115,7 +126,7 @@ float TargetDetector::compute_focal_length(const int image_width, const float hf
 	// -----------------------------------------------------------------
 	// TODO compute the focal length f
 	// -----------------------------------------------------------------
-	return 0;
+	return (image_width/2)/tan(hfov/2);
 }
 
 /** Compute the centered image coordinates (x, y)
@@ -132,7 +143,10 @@ matrix::Vector2f TargetDetector::compute_centered_image_coordinates(
 	// -----------------------------------------------------------------
 	// TODO compute target's position in centered image coordinates
 	// -----------------------------------------------------------------
-	return matrix::Vector2f();
+	target_pos_c_image(0) = target_pos(0)-(image_width/2); 
+	target_pos_c_image(1) = target_pos(1)-(image_height/2);
+
+	return target_pos_c_image; 
 }
 
 /** Compute the scale s
@@ -149,7 +163,7 @@ float TargetDetector::compute_scale(
 	// -----------------------------------------------------------------
 	// TODO compute the scale s
 	// -----------------------------------------------------------------
-	return 0;
+	return distance/sqrt(centered_image_coordinates(0)²+centered_image_coordinates(1)²+focal_length²);
 }
 
 /** Find the target location in image frame.
@@ -163,7 +177,13 @@ matrix::Vector3f TargetDetector::compute_target_position_image_frame(const matri
 	// -----------------------------------------------------------------
 	// TODO compute target's position in image frame
 	// -----------------------------------------------------------------
-	return matrix::Vector3f();
+	matrix::Vector3f target_pos_i_image;
+
+	target_pos_i_image(0) = target_pos_c_image(0)*scale;
+	target_pos_i_image(1) = target_pos_c_image(1)*scale;
+	target_pos_i_image(2) = focal_length*scale;
+
+	return target_pos_i_image;
 }
 
 /** Compute covariance matrix
@@ -185,7 +205,27 @@ matrix::SquareMatrix<float, 3>  TargetDetector::compute_covariance_image_frame(
 	// -----------------------------------------------------------------
 	// TODO compute covariance matrix in image frame
 	// -----------------------------------------------------------------
-	return matrix::SquareMatrix<float, 3>();
+	float sigma2_X;
+	float sigma2_Y;
+	float sigma2_Z;
+	float sigma2_s;
+	float l;
+
+	l = sqrt(target_pos_image(0)²+target_pos_image(1)²+focal_length²);
+
+	sigma2_s = var_d²/l² + (distance²/l⁶)*(target_pos_image(0)²*var_u²+target_pos_image(1)²*var_v²);
+
+	sigma2_X =  sigma2_s*target_pos_image(0)²+var_u²*sigma2_s²;
+	sigma2_Y =  sigma2_s*target_pos_image(1)²+var_v²*sigma2_s²;
+	sigma2_Z =  sigma2_s*focal_length²+var_v²;
+
+	const float cov_matrix[9] = { sigma2_X, 0.0f, 0.0f,
+							0.0f, sigma2_Y, 0.0f,
+							0.0f, 0.0f, sigma2_Z};
+
+
+
+	return cov_matrix;
 }
 
 /** Compute a rotation matrix to convert from camera frame to gimbal frame
@@ -196,12 +236,11 @@ matrix::Dcm<float> TargetDetector::compute_rotation_camera_to_gimbal()
 	// -----------------------------------------------------------------
 	// TODO compute rotation matrix to convert from camera frame to gimbal frame
 	// -----------------------------------------------------------------
-	const float data[9] = { 1.0f, 0.0f, 0.0f,
-							0.0f, 1.0f, 0.0f,
-							0.0f, 0.0f, 1.0f};
+	const float data[9] = { 0.0f, 0.0f, 1.0f,
+							1.0f, 0.0f, 0.0f,
+							0.0f, 1.0f, 0.0f};
 
-
-	return matrix::Dcm<float>(data);
+	return data;
 }
 
 /** Compute a rotation matrix to convert from gimbal frame to the drone's body frame using the gimbal angles
@@ -273,8 +312,8 @@ matrix::SquareMatrix<float, 3> TargetDetector::compute_covariance_local_frame(
 	// TODO convert covariance from image frame to local frame
 	// -----------------------------------------------------------------
 	// Sadly, total.rot.I() != total_rot.transpose() for the desired precision
-	// use the explicit matric inverse to pass the unit test!
-	//return total_rot * var_if * total.I();
+	// use the explicit matrix inverse to pass the unit test!
+	return total_rot * var_if * total.I();
 }
 
 void TargetDetector::update_subscriptions()
