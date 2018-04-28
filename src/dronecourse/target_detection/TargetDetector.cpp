@@ -24,11 +24,13 @@ TargetDetector::TargetDetector(const float hfov_default,
 	// TODO subscribe to uORB topics:
 	//  target_position_image messages, vehicle_attitude, vehicle_local_position
 	// --------------------------------------------------------------------------
-	_target_position_image_sub(orb_subscribe(ORB_ID(target_position_image)));
+	_target_position_image_sub = orb_subscribe(ORB_ID(target_position_image));
 
-	_attitude_sub(orb_subscribe(orb_subscribe(ORB_ID(vehicle_attitude)));
+	//_attitude_sub(orb_subscribe(orb_subscribe(ORB_ID(vehicle_attitude)));
 
-	_local_pos_sub(orb_subscribe(ORB_ID(vehicle_local_position)));
+	_local_pos_sub = orb_subscribe(ORB_ID(vehicle_local_position));
+
+	_vehicle_attitude_sub = orb_subscribe(ORB_ID(vehicle_attitude));
 
 	// --------------------------------------------------------------------------
 	// TODO set uORB publishing handle '_target_position_pub' to nullptr
@@ -163,7 +165,7 @@ float TargetDetector::compute_scale(
 	// -----------------------------------------------------------------
 	// TODO compute the scale s
 	// -----------------------------------------------------------------
-	return distance/sqrt(centered_image_coordinates(0)²+centered_image_coordinates(1)²+focal_length²);
+	return (double)distance/sqrt(centered_image_coordinates(0)*centered_image_coordinates(0)+centered_image_coordinates(1)*centered_image_coordinates(1)+focal_length*focal_length);
 }
 
 /** Find the target location in image frame.
@@ -211,13 +213,13 @@ matrix::SquareMatrix<float, 3>  TargetDetector::compute_covariance_image_frame(
 	float sigma2_s;
 	float l;
 
-	l = sqrt(target_pos_image(0)²+target_pos_image(1)²+focal_length²);
+	l = sqrt(target_pos_image(0)*target_pos_image(0)+target_pos_image(1)*target_pos_image(1)+focal_length*focal_length);
 
-	sigma2_s = var_d²/l² + (distance²/l⁶)*(target_pos_image(0)²*var_u²+target_pos_image(1)²*var_v²);
+	sigma2_s = (var_d*var_d)/(l*l) + ((distance*distance)/(l*l*l*l*l*l*l)*((target_pos_image(0)*target_pos_image(0))*(var_u*var_u)+(target_pos_image(1)*target_pos_image(1))*(var_v*var_v)));
 
-	sigma2_X =  sigma2_s*target_pos_image(0)²+var_u²*sigma2_s²;
-	sigma2_Y =  sigma2_s*target_pos_image(1)²+var_v²*sigma2_s²;
-	sigma2_Z =  sigma2_s*focal_length²+var_v²;
+	sigma2_X =  sigma2_s*(target_pos_image(0)*target_pos_image(0))+(var_u*var_u)*(scale*scale);
+	sigma2_Y =  sigma2_s*(target_pos_image(1)*target_pos_image(1))+(var_v*var_v)*(scale*scale);
+	sigma2_Z =  sigma2_s*(focal_length*focal_length);
 
 	const float cov_matrix[9] = { sigma2_X, 0.0f, 0.0f,
 							0.0f, sigma2_Y, 0.0f,
@@ -256,12 +258,14 @@ matrix::Dcm<float> TargetDetector::compute_rotation_gimbal_to_drone(
 	// TODO compute rotation matrix to convert from gimbal frame to the
 	//      drone's body frame using gimbal angles
 	// -----------------------------------------------------------------
-	const float data[9] = { 1.0f, 0.0f, 0.0f,
-							0.0f, 1.0f, 0.0f,
-							0.0f, 0.0f, 1.0f};
+	//const float data[9] = { 1.0f, 0.0f, 0.0f,
+							//0.0f, 1.0f, 0.0f,
+							//0.0f, 0.0f, 1.0f};
+	const matrix::Vector3f Euler = matrix::Euler<float>(0.0f,pitch,yaw);
 
-
-	return matrix::Dcm<float>(data);
+	const float rot_matrix[9] = rotation_matrix(Euler);
+	const float unrot_matrix[9] = inversed_rotation(rot_matrix.transpose());
+	return unrot_matrix;
 }
 
 /** Compute the rotation matrix from image frame to local frame.
@@ -279,7 +283,8 @@ matrix::Dcm<float> TargetDetector::compute_rotation_matrix(
 	// TODO compute the rotation matrix to convert from image frame to
 	//      local frame
 	// -----------------------------------------------------------------
-	return matrix::Dcm<float>();
+	// M = (att_vehicle.inversed()*gimbal_rot*image_rot);
+	return (att_vehicle.inversed()*gimbal_rot*image_rot);
 }
 
 /** Compute the target position in the local frame.
@@ -296,7 +301,8 @@ matrix::Vector3f TargetDetector::compute_target_position_local_frame(
 	// -----------------------------------------------------------------
 	// TODO convert target's position from image frame to local frame
 	// -----------------------------------------------------------------
-	return matrix::Vector3f();
+	matrix::Vector3f target = total_rot*target_pos + pos_vehicle;
+	return target;
 }
 
 /** Convert covariance matrix from image frame to local frame
@@ -322,4 +328,29 @@ void TargetDetector::update_subscriptions()
 	// TODO update subscriptions for vehicle_attitude as well as for vehicle_local_position
 	//   and update the member variables _att_vehicle and _pos_vehicle
 	// -------------------------------------------------------------------------------------
+	bool updated_att
+	vehicle_att_s vehicle_attitude_msg;
+
+	orb_check(_vehicle_attitude_sub, &updated_att);
+
+	while(!updated_att){
+		orb_check(_vehicle_attitude_sub, &updated_att);
+		}
+	if (updated_att)
+	{
+		orb_copy(ORB_ID(vehicle_attitude), _vehicle_attitude_sub, &vehicle_attitude_msg);
+		quaternion = vehicle_attitude_msg.q;
+		_att_vehicle = rotation_matrix(quaternion.inversed()); 
+	}
+
+	bool updated_pos
+	orb_check(_local_pos_sub, &updated_pos);
+	if (updated_pos)
+	 {
+	 	vehicle_local_position_s local_pos;
+	 	orb_copy(ORB_ID(vehicle_local_position), _local_pos_sub, &local_pos);
+	 	pos_vehicle.x = local_pos.x;
+	 	pos_vehicle.y = local_pos.y;
+	 	pos_vehicle.z = -local_pos.z;
+	 } 
 }
