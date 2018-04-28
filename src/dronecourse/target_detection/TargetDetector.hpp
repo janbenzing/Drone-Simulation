@@ -138,6 +138,9 @@ public:
 	const int IMAGE_HEIGHT;
 
 private:
+
+	matrix::Dcm<float> rotation_matrix(matrix::Vector3f euler);
+
 	void update_subscriptions();
 
 	//int _attitude_sub;
@@ -154,4 +157,9 @@ private:
 	// vehicle attitude and position (from uORB)
 	matrix::Dcm<float> _att_vehicle;
 	matrix::Vector3f   _pos_vehicle;
+
+	float q_0;
+	float q_1;
+	float q_2;
+	float q_3;
 };

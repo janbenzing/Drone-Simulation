@@ -128,7 +128,7 @@ float TargetDetector::compute_focal_length(const int image_width, const float hf
 	// -----------------------------------------------------------------
 	// TODO compute the focal length f
 	// -----------------------------------------------------------------
-	return (image_width/2)/tan(hfov/2);
+	return image_width/(2*tan(hfov/2));
 }
 
 /** Compute the centered image coordinates (x, y)
@@ -145,8 +145,9 @@ matrix::Vector2f TargetDetector::compute_centered_image_coordinates(
 	// -----------------------------------------------------------------
 	// TODO compute target's position in centered image coordinates
 	// -----------------------------------------------------------------
-	target_pos_c_image(0) = target_pos(0)-(image_width/2); 
-	target_pos_c_image(1) = target_pos(1)-(image_height/2);
+	matrix::Vector2f target_pos_c_image;
+	target_pos_c_image(0) = target_pos(0) - (image_width/2); 
+	target_pos_c_image(1) = target_pos(1) - (image_height/2);
 
 	return target_pos_c_image; 
 }
@@ -261,10 +262,10 @@ matrix::Dcm<float> TargetDetector::compute_rotation_gimbal_to_drone(
 	//const float data[9] = { 1.0f, 0.0f, 0.0f,
 							//0.0f, 1.0f, 0.0f,
 							//0.0f, 0.0f, 1.0f};
-	const matrix::Vector3f Euler = matrix::Euler<float>(0.0f,pitch,yaw);
+	matrix::Vector3f euler = matrix::Euler<float>(0.0f,pitch,yaw);
 
-	const float rot_matrix[9] = rotation_matrix(Euler);
-	const float unrot_matrix[9] = inversed_rotation(rot_matrix.transpose());
+	matrix::Dcm<float> rot_matrix = {rotation_matrix(euler)};
+	matrix::Dcm<float> unrot_matrix = rot_matrix.transpose();
 	return unrot_matrix;
 }
 
@@ -284,7 +285,7 @@ matrix::Dcm<float> TargetDetector::compute_rotation_matrix(
 	//      local frame
 	// -----------------------------------------------------------------
 	// M = (att_vehicle.inversed()*gimbal_rot*image_rot);
-	return (att_vehicle.inversed()*gimbal_rot*image_rot);
+	return ((att_vehicle.I())*gimbal_rot*image_rot);
 }
 
 /** Compute the target position in the local frame.
@@ -319,7 +320,7 @@ matrix::SquareMatrix<float, 3> TargetDetector::compute_covariance_local_frame(
 	// -----------------------------------------------------------------
 	// Sadly, total.rot.I() != total_rot.transpose() for the desired precision
 	// use the explicit matrix inverse to pass the unit test!
-	return total_rot * var_if * total.I();
+	return total_rot*var_if*total_rot.I();
 }
 
 void TargetDetector::update_subscriptions()
@@ -328,8 +329,8 @@ void TargetDetector::update_subscriptions()
 	// TODO update subscriptions for vehicle_attitude as well as for vehicle_local_position
 	//   and update the member variables _att_vehicle and _pos_vehicle
 	// -------------------------------------------------------------------------------------
-	bool updated_att
-	vehicle_att_s vehicle_attitude_msg;
+	bool updated_att;
+	vehicle_attitude_s vehicle_attitude_msg;
 
 	orb_check(_vehicle_attitude_sub, &updated_att);
 
@@ -339,18 +340,46 @@ void TargetDetector::update_subscriptions()
 	if (updated_att)
 	{
 		orb_copy(ORB_ID(vehicle_attitude), _vehicle_attitude_sub, &vehicle_attitude_msg);
-		quaternion = vehicle_attitude_msg.q;
-		_att_vehicle = rotation_matrix(quaternion.inversed()); 
+		q_0 = vehicle_attitude_msg.q[0];
+		q_1 = vehicle_attitude_msg.q[1];
+		q_2 = vehicle_attitude_msg.q[2];
+		q_3 = vehicle_attitude_msg.q[3];
+
+		float Phi = atan2(2*(q_0*q_1 + q_2*q_3), 1-2*(q_1*q_1 + q_2*q_2));
+		float Theta = asin(2*(q_0*q_2 - q_1*q_3));
+		float Psi = atan2(2*(q_0*q_3 + q_1*q_2), 1-2*(q_2*q_2 + q_3*q_3));
+
+		matrix::Vector3f quaternion;
+
+		quaternion(0) = Phi;
+		quaternion(1) = Theta;
+		quaternion(2) = Psi;
+
+		//quaternion = vehicle_attitude_msg.q;
+		_att_vehicle = rotation_matrix(quaternion); 
 	}
 
-	bool updated_pos
+	bool updated_pos;
 	orb_check(_local_pos_sub, &updated_pos);
 	if (updated_pos)
 	 {
 	 	vehicle_local_position_s local_pos;
 	 	orb_copy(ORB_ID(vehicle_local_position), _local_pos_sub, &local_pos);
-	 	pos_vehicle.x = local_pos.x;
-	 	pos_vehicle.y = local_pos.y;
-	 	pos_vehicle.z = -local_pos.z;
+	 	_pos_vehicle(0) = local_pos.x;
+	 	_pos_vehicle(1) = local_pos.y;
+	 	_pos_vehicle(3) = -local_pos.z;
 	 } 
+}
+
+matrix::Dcm<float> TargetDetector::rotation_matrix(matrix::Vector3f euler)
+{
+	float Psi = euler(2);
+	float Phi = euler(1);
+	float Theta = euler(0);
+
+	const float data[9] = {cos(Theta)*cos(Psi), cos(Theta)*sin(Psi), -sin(Theta),
+							sin(Phi)*sin(Theta)*cos(Psi) - cos(Phi)*sin(Psi), sin(Phi)*sin(Theta)*sin(Psi) + cos(Psi)*cos(Phi), sin(Phi)*cos(Theta),
+							cos(Phi)*sin(Theta)*cos(Psi) + sin(Phi)*sin(Psi), cos(Phi)*sin(Theta)*sin(Psi) - sin(Phi)*cos(Psi), cos(Phi)*cos(Theta)};
+
+	return data;
 }
