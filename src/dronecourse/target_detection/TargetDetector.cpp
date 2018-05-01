@@ -35,6 +35,8 @@ TargetDetector::TargetDetector(const float hfov_default,
 	// --------------------------------------------------------------------------
 	// TODO set uORB publishing handle '_target_position_pub' to nullptr
 	// --------------------------------------------------------------------------
+	_target_position_pub = nullptr;
+
 }
 
 TargetDetector::~TargetDetector()
@@ -43,6 +45,10 @@ TargetDetector::~TargetDetector()
 	// TODO unsubscribe from uORB topics:
 	//  target_position_image messages, vehicle_attitude, vehicle_local_position
 	// --------------------------------------------------------------------------
+	orb_unsubscribe(_target_position_image_sub);
+	orb_unsubscribe(_local_pos_sub);
+	orb_unsubscribe(_vehicle_attitude_sub);
+
 }
 
 void TargetDetector::update()
@@ -145,11 +151,12 @@ matrix::Vector2f TargetDetector::compute_centered_image_coordinates(
 	// -----------------------------------------------------------------
 	// TODO compute target's position in centered image coordinates
 	// -----------------------------------------------------------------
-	matrix::Vector2f target_pos_c_image;
-	target_pos_c_image(0) = target_pos(0) - (image_width/2); 
-	target_pos_c_image(1) = target_pos(1) - (image_height/2);
+	matrix::Vector2f target_c_image;
 
-	return target_pos_c_image; 
+	target_c_image(0) = target_pos(0) - (image_width/2); 
+	target_c_image(1) = target_pos(1) - (image_height/2);
+
+	return matrix::Vector2f (target_c_image); 
 }
 
 /** Compute the scale s
@@ -182,11 +189,11 @@ matrix::Vector3f TargetDetector::compute_target_position_image_frame(const matri
 	// -----------------------------------------------------------------
 	matrix::Vector3f target_pos_i_image;
 
-	target_pos_i_image(0) = target_pos_c_image(0)*scale;
-	target_pos_i_image(1) = target_pos_c_image(1)*scale;
+	target_pos_i_image(0) = target_pos_image(0)*scale;
+	target_pos_i_image(1) = target_pos_image(1)*scale;
 	target_pos_i_image(2) = focal_length*scale;
 
-	return target_pos_i_image;
+	return matrix::Vector3f (target_pos_i_image);
 }
 
 /** Compute covariance matrix
@@ -216,19 +223,19 @@ matrix::SquareMatrix<float, 3>  TargetDetector::compute_covariance_image_frame(
 
 	l = sqrt(target_pos_image(0)*target_pos_image(0)+target_pos_image(1)*target_pos_image(1)+focal_length*focal_length);
 
-	sigma2_s = (var_d*var_d)/(l*l) + ((distance*distance)/(l*l*l*l*l*l*l)*((target_pos_image(0)*target_pos_image(0))*(var_u*var_u)+(target_pos_image(1)*target_pos_image(1))*(var_v*var_v)));
+	sigma2_s = (var_d)/(l*l) + ((distance*distance)/(l*l*l*l*l*l)*((target_pos_image(0)*target_pos_image(0))*(var_u)+(target_pos_image(1)*target_pos_image(1))*(var_v)));
 
-	sigma2_X =  sigma2_s*(target_pos_image(0)*target_pos_image(0))+(var_u*var_u)*(scale*scale);
-	sigma2_Y =  sigma2_s*(target_pos_image(1)*target_pos_image(1))+(var_v*var_v)*(scale*scale);
+	sigma2_X =  sigma2_s*(target_pos_image(0)*target_pos_image(0))+(var_u)*(scale*scale);
+	sigma2_Y =  sigma2_s*(target_pos_image(1)*target_pos_image(1))+(var_v)*(scale*scale);
 	sigma2_Z =  sigma2_s*(focal_length*focal_length);
 
 	const float cov_matrix[9] = { sigma2_X, 0.0f, 0.0f,
-							0.0f, sigma2_Y, 0.0f,
-							0.0f, 0.0f, sigma2_Z};
+								0.0f, sigma2_Y, 0.0f,
+								0.0f, 0.0f, sigma2_Z};
 
 
 
-	return cov_matrix;
+	return matrix::SquareMatrix<float, 3> (cov_matrix);
 }
 
 /** Compute a rotation matrix to convert from camera frame to gimbal frame
@@ -243,7 +250,7 @@ matrix::Dcm<float> TargetDetector::compute_rotation_camera_to_gimbal()
 							1.0f, 0.0f, 0.0f,
 							0.0f, 1.0f, 0.0f};
 
-	return data;
+	return matrix::Dcm<float> (data);
 }
 
 /** Compute a rotation matrix to convert from gimbal frame to the drone's body frame using the gimbal angles
@@ -262,11 +269,9 @@ matrix::Dcm<float> TargetDetector::compute_rotation_gimbal_to_drone(
 	//const float data[9] = { 1.0f, 0.0f, 0.0f,
 							//0.0f, 1.0f, 0.0f,
 							//0.0f, 0.0f, 1.0f};
-	matrix::Vector3f euler = matrix::Euler<float>(0.0f,pitch,yaw);
 
-	matrix::Dcm<float> rot_matrix = {rotation_matrix(euler)};
-	matrix::Dcm<float> unrot_matrix = rot_matrix.transpose();
-	return unrot_matrix;
+	
+	return matrix::Dcm<float> (matrix::Euler<float>(0.0f, pitch, yaw));
 }
 
 /** Compute the rotation matrix from image frame to local frame.
@@ -284,8 +289,7 @@ matrix::Dcm<float> TargetDetector::compute_rotation_matrix(
 	// TODO compute the rotation matrix to convert from image frame to
 	//      local frame
 	// -----------------------------------------------------------------
-	// M = (att_vehicle.inversed()*gimbal_rot*image_rot);
-	return ((att_vehicle.I())*gimbal_rot*image_rot);
+	return (att_vehicle*gimbal_rot*image_rot);
 }
 
 /** Compute the target position in the local frame.
@@ -334,29 +338,17 @@ void TargetDetector::update_subscriptions()
 
 	orb_check(_vehicle_attitude_sub, &updated_att);
 
-	while(!updated_att){
-		orb_check(_vehicle_attitude_sub, &updated_att);
-		}
+	
 	if (updated_att)
 	{
 		orb_copy(ORB_ID(vehicle_attitude), _vehicle_attitude_sub, &vehicle_attitude_msg);
-		q_0 = vehicle_attitude_msg.q[0];
-		q_1 = vehicle_attitude_msg.q[1];
-		q_2 = vehicle_attitude_msg.q[2];
-		q_3 = vehicle_attitude_msg.q[3];
 
-		float Phi = atan2(2*(q_0*q_1 + q_2*q_3), 1-2*(q_1*q_1 + q_2*q_2));
-		float Theta = asin(2*(q_0*q_2 - q_1*q_3));
-		float Psi = atan2(2*(q_0*q_3 + q_1*q_2), 1-2*(q_2*q_2 + q_3*q_3));
+		matrix::Quaternion<float>  q(vehicle_attitude_msg.q); 
 
-		matrix::Vector3f quaternion;
+		matrix::Dcm<float> rot_matrix(q.inversed());
 
-		quaternion(0) = Phi;
-		quaternion(1) = Theta;
-		quaternion(2) = Psi;
+		_att_vehicle = rot_matrix;
 
-		//quaternion = vehicle_attitude_msg.q;
-		_att_vehicle = rotation_matrix(quaternion); 
 	}
 
 	bool updated_pos;
@@ -369,17 +361,4 @@ void TargetDetector::update_subscriptions()
 	 	_pos_vehicle(1) = local_pos.y;
 	 	_pos_vehicle(3) = -local_pos.z;
 	 } 
-}
-
-matrix::Dcm<float> TargetDetector::rotation_matrix(matrix::Vector3f euler)
-{
-	float Psi = euler(2);
-	float Phi = euler(1);
-	float Theta = euler(0);
-
-	const float data[9] = {cos(Theta)*cos(Psi), cos(Theta)*sin(Psi), -sin(Theta),
-							sin(Phi)*sin(Theta)*cos(Psi) - cos(Phi)*sin(Psi), sin(Phi)*sin(Theta)*sin(Psi) + cos(Psi)*cos(Phi), sin(Phi)*cos(Theta),
-							cos(Phi)*sin(Theta)*cos(Psi) + sin(Phi)*sin(Psi), cos(Phi)*sin(Theta)*sin(Psi) - sin(Phi)*cos(Psi), cos(Phi)*cos(Theta)};
-
-	return data;
 }
