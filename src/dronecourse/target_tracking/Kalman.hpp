@@ -41,10 +41,15 @@ public:
 		// --------------------------------------------------------------------------
 		// TODO initialize member functions _h, _dt, _f and _x
 		// --------------------------------------------------------------------------
-
+		_h = h;
+		_dt = dt;
+		_f = f;
+		_x = x0;
 		// --------------------------------------------------------------------------
 		// TODO set covariance matrix of estimation P(k=0)
 		// --------------------------------------------------------------------------
+		matrix::Matrix<float, M> cov_matrix(p0);
+		_p = cov_matrix_est;
 
 		// Set system noise
 		set_system_noise(w);
@@ -149,7 +154,7 @@ public:
 		// -------------------------------------------------
 		// TODO compute kalman gain k (weight/trust of measurement)
 		// -------------------------------------------------
-		return matrix::Matrix<float, M, N>();
+		return p*h.transpose()*(matrix::inv(h*p*h.transpose() + r));
 	}
 
 	/**
@@ -169,7 +174,7 @@ public:
 		// --------------------------------------------------
 		// TODO return updated state estimation
 		// --------------------------------------------------
-		return x;
+		return x + k*(z-h*x);
 	}
 
 	/**
@@ -187,7 +192,7 @@ public:
 		// --------------------------------------------------
 		// TODO return updated estimation of state covariance
 		// --------------------------------------------------
-		return p;
+		return (p.setIdentity() - k*h)*p;
 	}
 
 	/**
