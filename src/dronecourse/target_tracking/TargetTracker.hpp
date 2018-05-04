@@ -11,7 +11,7 @@
 #include <px4_posix.h>
 #include <uORB/Subscription.hpp>
 
-# include "Kalman.hpp"
+#include "Kalman.hpp"
 
 class TargetTracker
 {
@@ -35,7 +35,6 @@ private:
 	// TODO define Kalman filter member variable
 	//      using M and N as template parameters
 	// ---------------------------------------------
-	KalmanFilter<6,3> my_kalman;
 
 	// --------------------------------------------
 	// TODO define a vector containing

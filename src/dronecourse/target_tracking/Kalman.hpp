@@ -117,7 +117,9 @@ public:
 		// ------------------------------------------
 		// TODO perform prediction: update x
 		// ------------------------------------------
-		return x;
+		matrix::Vector<float, M> _x_pred;
+		_x_pred = phi*x; 
+		return _x_pred;
 	}
 
 
@@ -134,9 +136,11 @@ public:
 		matrix::SquareMatrix<float, M> &p)
 	{
 		// ------------------------------------------
-		// TODO perform prediction: update phi
+		// TODO perform prediction: update p
 		// ------------------------------------------
-		return phi;
+		matrix::SquareMatrix<float, M> _p_cov;
+		_p_cov = phi*p*phi.transpose() + q;
+		return _p_cov;
 	}
 
 	/**
@@ -210,8 +214,17 @@ public:
 		// ----------------------------------------
 		// TODO compute the auxillary matrix A
 		// ----------------------------------------
+		const float G[36] = { w(0); 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+								0.0f, w(1), 0.0f, 0.0f, 0.0f, 0.0f,
+								0.0f, 0.0f, w(2), 0.0f, 0.0f, 0.0f,
+								0.0f, 0.0f, 0.0f, w(3), 0.0f, 0.0f,
+								0.0f, 0.0f, 0.0f, 0.0f, w(4), 0.0f,
+								0.0f, 0.0f, 0.0f, 0.0f, 0.0f, w(5)};
 
-		return matrix::SquareMatrix<float, 2 * M>();
+		const float A_int[4] = {-f, G*G.transpose(),
+							0.0f, f.transpose()};
+
+		return matrix::SquareMatrix<float, 2 * M>(A_int*dt);
 	}
 
 	/**
@@ -224,8 +237,7 @@ public:
 		// ------------------------------------------------
 		// TODO compute the auxillary matrix B
 		// ------------------------------------------------
-		return matrix::SquareMatrix<float, 2 * M>();
-	}
+		return matrix::SquareMatrix<float, 2 * M>(expm(A));
 
 	/**
 	 * Compute the state transition matrix phi.
@@ -253,7 +265,7 @@ public:
 		// ------------------------------------------------
 		// TODO compute phi
 		// ------------------------------------------------
-		return matrix::SquareMatrix<float, M>();
+		return matrix::SquareMatrix<float, M>(B(2,2).transpose());
 	}
 
 
@@ -263,7 +275,7 @@ public:
 		// ------------------------------------
 		// TODO return state estimation
 		// ------------------------------------
-		return NULL; // replace this line
+		return _x; // replace this line
 	};
 
 	/** @return variance (std^2) of state estimation */
@@ -273,7 +285,7 @@ public:
 		// TODO return variance of state estimation
 		//      only diagonal elements
 		// -----------------------------------------
-		return matrix::Vector<float, M>(); // replace this line
+		return matrix::Vector<float, M>(_p.diag()); // replace this line
 	}
 
 private:
