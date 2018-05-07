@@ -348,9 +348,9 @@ bool TargetDetectionTest::subscribe_publish_test()
 	struct target_position_ned_s result;
 	orb_copy(ORB_ID(target_position_ned), sub, &result);
 
-	float expected_x = -40.54225f;
-	float expected_y = 5.1908f;
-	float expected_z = 17.47864f;
+	float expected_x = -40.8227f;
+	float expected_y = 4.7289f;
+	float expected_z = 15.1495f;
 
 	ut_compare_float("target_pos_ned.x", expected_x, result.x, FLOAT_PRECISION);
 	ut_compare_float("target_pos_ned.y", expected_y, result.y, FLOAT_PRECISION);

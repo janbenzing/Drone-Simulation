@@ -58,5 +58,6 @@
 	__position_msg.x = __v(0); \
 	__position_msg.y = __v(1); \
 	__position_msg.z = __v(2); \
-	orb_advertise(ORB_ID(vehicle_local_position), &__position_msg); \
+	orb_advert_t __advertiser = orb_advertise(ORB_ID(vehicle_local_position), &__position_msg); \
+	orb_unadvertise(__advertiser); \
 } while(0)
