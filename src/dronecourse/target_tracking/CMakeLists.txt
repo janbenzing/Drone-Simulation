@@ -39,5 +39,7 @@ px4_add_module(
 	TargetTracker.cpp
 	DEPENDS
 	platforms__common
+	COMPILE_FLAGS
+	-Werror=shadow
 )
 # vim: set noet ft=cmake fenc=utf-8 ff=unix :

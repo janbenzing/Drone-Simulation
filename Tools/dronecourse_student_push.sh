@@ -5,10 +5,10 @@ set -e
 # This script strips the development version of the dronecourse source code from
 # solutions and pushes only the student-facing version to a public repository.
 
-# if [[ $CIRCLE_BRANCH != "dronecourse/stable" ]]
-# then
-#   exit 0
-# fi 
+if [[ $CIRCLE_BRANCH != "dronecourse/stable" ]]
+then
+  exit 0
+fi 
 
 # https://github.com/mavlink/mavlink/blob/master/scripts/travis_update_generated_repos.sh#L28-L31
 git config --global user.email "dronecourse-bot@epfl.ch"

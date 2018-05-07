@@ -49,5 +49,7 @@ px4_add_module(
 	DEPENDS
 	platforms__common
 	waypoint_gen
+	COMPILE_FLAGS
+	-Werror=shadow
 )
 # vim: set noet ft=cmake fenc=utf-8 ff=unix :
