@@ -34,5 +34,5 @@ private:
 	// TODO: Create member variables for the waypoint and its current index 
 	// --------------------------------------------------------------------------
 	int _waypoint_index;
-	matrix::Vector3f waypoint;
+	matrix::Vector3f _waypoint;
 };

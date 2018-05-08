@@ -48,9 +48,13 @@ public:
 		// --------------------------------------------------------------------------
 		// TODO set covariance matrix of estimation P(k=0)
 		// --------------------------------------------------------------------------
-		matrix::Matrix<float, M> cov_matrix(p0);
+		matrix::SquareMatrix<float, M> cov_matrix_est;
+		cov_matrix_est.setZero();
+		for (int i = 0; i < M; ++i)
+		{
+			cov_matrix_est(i,i) = p0(i)*p0(i);
+		}
 		_p = cov_matrix_est;
-
 		// Set system noise
 		set_system_noise(w);
 	};
@@ -158,7 +162,7 @@ public:
 		// -------------------------------------------------
 		// TODO compute kalman gain k (weight/trust of measurement)
 		// -------------------------------------------------
-		return p*h.transpose()*(matrix::inv(h*p*h.transpose() + r));
+		return p*h.transpose()*(matrix::inv(matrix::SquareMatrix<float,N>(h*p*h.transpose() + r)));
 	}
 
 	/**
@@ -196,7 +200,13 @@ public:
 		// --------------------------------------------------
 		// TODO return updated estimation of state covariance
 		// --------------------------------------------------
-		return (p.setIdentity() - k*h)*p;
+		matrix::SquareMatrix<float, M> I;
+
+		for (int i = 0; i < M; ++i)
+		{
+			I(i,i) = 0;
+		}
+		return (I - k*h)*p;
 	}
 
 	/**
@@ -214,17 +224,66 @@ public:
 		// ----------------------------------------
 		// TODO compute the auxillary matrix A
 		// ----------------------------------------
-		const float G[36] = { w(0); 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
+		/*const float G[36] = { w(0), 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
 								0.0f, w(1), 0.0f, 0.0f, 0.0f, 0.0f,
 								0.0f, 0.0f, w(2), 0.0f, 0.0f, 0.0f,
 								0.0f, 0.0f, 0.0f, w(3), 0.0f, 0.0f,
 								0.0f, 0.0f, 0.0f, 0.0f, w(4), 0.0f,
-								0.0f, 0.0f, 0.0f, 0.0f, 0.0f, w(5)};
+								0.0f, 0.0f, 0.0f, 0.0f, 0.0f, w(5)};*/
 
-		const float A_int[4] = {-f, G*G.transpose(),
-							0.0f, f.transpose()};
+		matrix::SquareMatrix<float, M> G;
+		G.setZero();
+		for (int i = 0; i < M; ++i)
+		{
+			G(i,i) = w(i);
+		}
 
-		return matrix::SquareMatrix<float, 2 * M>(A_int*dt);
+		/*matrix::SquareMatrix<float, M> Zeros;
+		Zeros.setZero();
+		const float A_int[2] = {-f, G*G.transpose(),
+							Zeros, f.transpose()};*/
+
+		matrix::SquareMatrix<float, 2 * M> A;
+		A.setZero();					
+		for (int i = 0; i < M; ++i)
+		{	
+			for (int j = 0; j < M; ++j)
+			{
+				A(i,j) = -f(i,j);
+			}
+		}
+
+		for (int i = M; i < 2*M; ++i)
+		{
+			for (int j = 0; j < M; ++j)
+			{
+				A(i,j) = 0;
+			}
+		}
+
+		matrix::SquareMatrix<float, M> G_transp;
+		G_transp = G.transpose();
+
+		for (int i = 0; i < M; ++i)
+		{
+			for (int j = M; j < 2*M; ++j)
+			{
+				A(i,j) = G(i,j-M)*G_transp(i,j-M);
+			}
+		}
+
+		matrix::SquareMatrix<float, M> f_transp;
+		f_transp = f.transpose();
+
+		for (int i = M; i < 2*M; ++i)
+		{
+			for (int j = M; j < 2*M; ++j)
+			{
+				A(i,j) = f_transp(i-M,j-M);
+			}
+		}
+
+		return A*dt;
 	}
 
 	/**
@@ -237,8 +296,10 @@ public:
 		// ------------------------------------------------
 		// TODO compute the auxillary matrix B
 		// ------------------------------------------------
-		return matrix::SquareMatrix<float, 2 * M>(expm(A));
-
+		matrix::SquareMatrix<float, 2 * M> B;
+		B = matrix::expm(A);
+		return  B;
+	}
 	/**
 	 * Compute the state transition matrix phi.
 	 * @param B auxillary matrix B
@@ -249,7 +310,18 @@ public:
 		// ------------------------------------------------
 		// TODO compute phi
 		// ------------------------------------------------
-		return matrix::SquareMatrix<float, M>();
+		matrix::SquareMatrix<float, M> phi;
+
+		for (int i = 0; i < M; ++i)
+		{	
+			for (int j = 0; j < M; ++j)
+			{
+				phi(j,i) = B(i+M,j+M);
+			}
+			
+		}
+		
+		return phi;
 	}
 
 	/**
@@ -263,9 +335,23 @@ public:
 		matrix::SquareMatrix<float, M> phi)
 	{
 		// ------------------------------------------------
-		// TODO compute phi
+		// TODO compute q
 		// ------------------------------------------------
-		return matrix::SquareMatrix<float, M>(B(2,2).transpose());
+		matrix::SquareMatrix<float, M> B_int;
+
+		for (int i = 0; i < M; ++i)
+		{
+			for (int j = M; j < 2 * M; ++j)
+			{
+				B_int(i,j-M) = B(i,j);
+			}
+		}
+
+		matrix::SquareMatrix<float, M> q;
+
+		q = phi*B_int;
+
+		return q;
 	}
 
 

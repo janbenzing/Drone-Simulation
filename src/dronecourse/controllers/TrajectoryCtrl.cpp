@@ -41,8 +41,8 @@ void TrajectoryCtrl::update()
 	if (PositionCtrl::is_goal_reached() && _waypoint_index != 2)
 	{
 		_waypoint_index = _waypoint_index + 1;
-		_navigator->waypoint_copy(_waypoint_index, &waypoint);
-		PositionCtrl::set_position_command(waypoint);
+		_navigator->waypoint_copy(_waypoint_index, &_waypoint);
+		PositionCtrl::set_position_command(_waypoint);
 	}
 	
 	// --------------------------------------------------------------------------
