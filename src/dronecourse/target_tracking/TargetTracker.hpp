@@ -20,6 +20,8 @@ class TargetTracker
 	//      for number of states variables and
 	//      measurement variables and set their values
 	// ------------------------------------------------
+	static const int N = 3;
+	static const int M = 6;
 
 public:
 	TargetTracker(float dt);
@@ -35,21 +37,25 @@ private:
 	// TODO define Kalman filter member variable
 	//      using M and N as template parameters
 	// ---------------------------------------------
+	KalmanFilter Kalman<M,N>;
 
 
 	// --------------------------------------------
 	// TODO define a vector containing
 	//      the system noise standard deviation _w
 	// ---------------------------------------------
+	matrix::Vector<float, M> _w;
 
 	// --------------------------------------------
 	// TODO create onboard parameter handle arrays
 	// --------------------------------------------
+	param_t _p_kal_sys_noise[M];
 
 	// ------------------------------------------
 	// TODO add uORB subscriptions for
 	// target_position_ned
 	// ------------------------------------------
+	int target_position_ned;
 
 	// -------------------------------------------
 	// TODO create handle for uORB publication of
