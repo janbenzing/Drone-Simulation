@@ -37,8 +37,7 @@ private:
 	// TODO define Kalman filter member variable
 	//      using M and N as template parameters
 	// ---------------------------------------------
-	KalmanFilter Kalman<M,N>;
-
+	KalmanFilter<M,N> Kalman;
 
 	// --------------------------------------------
 	// TODO define a vector containing
@@ -55,13 +54,13 @@ private:
 	// TODO add uORB subscriptions for
 	// target_position_ned
 	// ------------------------------------------
-	int target_position_ned;
+	int _target_position_ned_sub;
 
 	// -------------------------------------------
 	// TODO create handle for uORB publication of
 	//      of topic target_position_ned_filtered
 	// -------------------------------------------
-
+	 int _target_position_ned_filtered_pub;
 };
 
 
