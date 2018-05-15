@@ -18,12 +18,12 @@ TargetTracker::TargetTracker(float dt)
 	// TODO set up the arrays of parameter handles
 	//      _p_kal_sys_noise
 	// ----------------------------------------------
-	_p_kal_sys_noise[0] = param_find("xNoise");
-	_p_kal_sys_noise[1] = param_find("yNoise");
-	_p_kal_sys_noise[2] = param_find("zNoise");
-	_p_kal_sys_noise[3] = param_find("vxNoise");
-	_p_kal_sys_noise[4] = param_find("vyNoise");
-	_p_kal_sys_noise[5] = param_find("vzNoise");
+	_p_kal_sys_noise[0] = param_find("XNOISE");
+	_p_kal_sys_noise[1] = param_find("YNOISE");
+	_p_kal_sys_noise[2] = param_find("ZNOISE");
+	_p_kal_sys_noise[3] = param_find("VXNOISE");
+	_p_kal_sys_noise[4] = param_find("VYNOISE");
+	_p_kal_sys_noise[5] = param_find("VZNOISE");
 
 	// ----------------------------------------------
 	// TODO Check validity of parameter handles
@@ -94,12 +94,14 @@ void TargetTracker::update()
 	bool new_measure = false;
 	update_parameters();
 
-	KalmanFilter::predict();
+	Kalman.predict();
 	// ------------------------------------------------------------
 	// TODO check if we have a new target_position_ned message
 	// and set new_measure accordingly
 	// ------------------------------------------------------------
 	orb_check(_target_position_ned_sub, &new_measure);
+
+	target_position_ned_s target_position;
 
 	if (new_measure) {
 		// --------------------------------------------------------------------
@@ -107,16 +109,17 @@ void TargetTracker::update()
 		// --------------------------------------------------------------------
 		matrix::Vector<float, M> measure_val;
 
-		target_position_ned_s target_position;
 		orb_copy(ORB_ID(target_position_ned), _target_position_ned_sub, &target_position);
 	}
+
 	matrix::Vector<float, N> target_measure;
 	target_measure(0) = target_position.x;
 	target_measure(1) = target_position.y;
 	target_measure(2) = target_position.z;
 
-	matrix::SquareMatrix<float,M> target_measure_cov(target_position.var);
-	Kalman.correct(&target_measure,&target_measure_cov);
+	matrix::SquareMatrix<float,N> target_measure_cov(target_position.var);
+
+	Kalman.correct(target_measure, target_measure_cov);
 
 	// -------------------------------------------------------------------------
 	// TODO call publish_filtered_target_position(...) to publish
@@ -144,10 +147,10 @@ void TargetTracker::update_parameters()
 	// ---------------------------------------------------
 	for (int i = 0; i < M; ++i)
 	{
-		if (fabsf(_p_kal_sys_noise[i] - _w[i]) > FLT_EPSILON)
+		if (fabsf(_p_kal_sys_noise[i] - _w(i) > FLT_EPSILON))
 		{
-			_w[i] = sys_noise_param[i];
-			Kalman.set_system_noise(&_w);
+			_w(i) = sys_noise_param[i];
+			Kalman.set_system_noise(_w);
 		}
 	}
 }
@@ -167,18 +170,18 @@ void TargetTracker::publish_filtered_target_position(const matrix::Vector<float,
 	target_positin_ned_filt.y = pos_vel(1);
 	target_positin_ned_filt.z = pos_vel(2);
 
-	float var_int[9] = {variance(0), 0, 0,
+	/*float var_int[9] = {variance(0), 0, 0,
 					0, variance(1), 0,
-					0, 0, variance(2)};
+					0, 0, variance(2)};*/
 
-	for (int i = 0; i < M*M; ++i)
+	for (int i = 0; i < N*N; ++i)
 	{
-		target_positin_ned_filt.var_int[i] = 0;
+		target_positin_ned_filt.var[i] = 0;
 	}
 
-	for (int i = 0; i < M; ++i)
+	for (int i = 0; i < N; ++i)
 	{
-		target_positin_ned_filt.var_int[i] = variance(i);
+		target_positin_ned_filt.var[i] = variance(i);
 	}
 
 	// -------------------------------------------------------------------------------------------

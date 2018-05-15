@@ -7,9 +7,74 @@
  * @author Basil Huber LIS <basil.huber@gmail.com>
  */
 
-PARAM_DEFINE_FLOAT(xNoise, 0.1f);
-PARAM_DEFINE_FLOAT(yNoise, 0.1f);
-PARAM_DEFINE_FLOAT(zNoise, 0.1f);
-PARAM_DEFINE_FLOAT(vxNoise, 0.1f);
-PARAM_DEFINE_FLOAT(vyNoise, 0.1f);
-PARAM_DEFINE_FLOAT(vzNoise, 0.1f);
+/**
+* Position controller gain
+*
+* Gain of the proportional position controller
+*
+* @min 0.0
+* @max 20.0
+* @decimal 2
+* @group Dronecourse
+*/
+PARAM_DEFINE_FLOAT(XNOISE, 0.1f);
+
+/**
+* Position controller gain
+*
+* Gain of the proportional position controller
+*
+* @min 0.0
+* @max 20.0
+* @decimal 2
+* @group Dronecourse
+*/
+PARAM_DEFINE_FLOAT(YNOISE, 0.1f);
+
+/**
+* Position controller gain
+*
+* Gain of the proportional position controller
+*
+* @min 0.0
+* @max 20.0
+* @decimal 2
+* @group Dronecourse
+*/
+PARAM_DEFINE_FLOAT(ZNOISE, 0.1f);
+
+/**
+* Position controller gain
+*
+* Gain of the proportional position controller
+*
+* @min 0.0
+* @max 20.0
+* @decimal 2
+* @group Dronecourse
+*/
+PARAM_DEFINE_FLOAT(VXNOISE, 0.1f);
+
+/**
+* Position controller gain
+*
+* Gain of the proportional position controller
+*
+* @min 0.0
+* @max 20.0
+* @decimal 2
+* @group Dronecourse
+*/
+PARAM_DEFINE_FLOAT(VYNOISE, 0.1f);
+
+/**
+* Position controller gain
+*
+* Gain of the proportional position controller
+*
+* @min 0.0
+* @max 20.0
+* @decimal 2
+* @group Dronecourse
+*/
+PARAM_DEFINE_FLOAT(VZNOISE, 0.1f);

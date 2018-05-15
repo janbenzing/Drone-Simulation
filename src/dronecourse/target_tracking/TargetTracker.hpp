@@ -60,7 +60,7 @@ private:
 	// TODO create handle for uORB publication of
 	//      of topic target_position_ned_filtered
 	// -------------------------------------------
-	 int _target_position_ned_filtered_pub;
+	 orb_advert_t _target_position_ned_filtered_pub;
 };
 
 
