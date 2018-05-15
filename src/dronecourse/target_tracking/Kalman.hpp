@@ -204,7 +204,7 @@ public:
 
 		for (int i = 0; i < M; ++i)
 		{
-			I(i,i) = 0;
+			I(i,i) = 1;
 		}
 		return (I - k*h)*p;
 	}

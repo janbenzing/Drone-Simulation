@@ -71,6 +71,10 @@ private:
 	//      target_position_ned_filtered,
 	//      vehicle_attitude and vehicle_local_position
 	// -----------------------------------------------------
+	int _target_position_ned_filtered_sub;
+	int _vehicle_attitude_sub;
+	int _local_pos_sub;
+
 
 	/** handle for uORB publication: gimbal_command */
 	orb_advert_t _gimbal_command_pub;

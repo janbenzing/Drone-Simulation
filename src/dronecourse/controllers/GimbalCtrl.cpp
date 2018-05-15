@@ -25,6 +25,10 @@ GimbalCtrl::GimbalCtrl()
 	//      target_position_ned_filtered,
 	//      vehicle_attitude and vehicle_local_position
 	// --------------------------------------------------
+	_target_position_ned_filtered_sub = orb_subscribe(ORB_ID(target_position_ned_filtered));
+	_vehicle_attitude_sub = orb_subscribe(ORB_ID(vehicle_attitude));
+	_local_pos_sub = orb_subscribe(ORB_ID(vehicle_local_position));
+
 
 	// set publishing handle for gimbal_command to nullptr
 	_gimbal_command_pub = nullptr;
@@ -40,6 +44,9 @@ GimbalCtrl::~GimbalCtrl()
 	//      target_position_ned_filtered,
 	//      vehicle_attitude and vehicle_local_position
 	// --------------------------------------------------
+	orb_unsubscribe(_target_position_ned_filtered_sub);
+	orb_unsubscribe(_vehicle_attitude_sub);
+	orb_unsubscribe(_local_pos_sub);
 
 	// Unadvertise
 	if(_gimbal_command_pub != nullptr) {
@@ -78,14 +85,17 @@ void GimbalCtrl::update()
 		// ------------------------------------------------
 		// TODO set target position from uORB
 		// ------------------------------------------------
+		orb_copy(ORB_ID(target_position_ned_filtered), _target_position_ned_filtered_sub, &target_pos_lf);
 
 		// ------------------------------------------------
 		// TODO set drone's attitude from uORB
 		// ------------------------------------------------
+		orb_copy(ORB_ID(vehicle_attitude), _vehicle_attitude_sub, &att_vehicle);
 
 		// ------------------------------------------------
 		// TODO set drone position from uORB
 		// ------------------------------------------------
+		orb_copy(ORB_ID(vehicle_local_position), _local_pos_sub, &pos_vehicle);
 
 		// create variable for target direction
 		const matrix::Vector3f target_dir = compute_target_direction(target_pos_lf, pos_vehicle);
@@ -113,7 +123,12 @@ matrix::Vector3f GimbalCtrl::compute_target_direction(const matrix::Vector3f tar
 	// TODO compute target direction
 	//      i.e., vector from drone to target
 	// ------------------------------------------------
-	return matrix::Vector3f(0, 0, 0);
+	matrix::Vector3f T;
+
+	T = target_pos_ned - pos_vehicle;
+	T.normalize();
+
+	return T;
 }
 
 matrix::Vector3f GimbalCtrl::compute_down_axis(matrix::Quaternion<float> attitude)
@@ -121,7 +136,14 @@ matrix::Vector3f GimbalCtrl::compute_down_axis(matrix::Quaternion<float> attitud
 	// ------------------------------------------------
 	// TODO compute drone's Z axis in local frame
 	// ------------------------------------------------
-	return matrix::Vector3f(0, 0, 0);
+	//matrix::Dcm<float> Z_local_frame_int(attitude.inversed());
+	matrix::Vector3f Z(0,0,1);
+
+	//matrix::Vector3f Z_local_frame;
+
+	//Z_local_frame = Z_local_frame_int*Z;
+
+	return attitude.conjugate_inversed(Z);
 }
 
 matrix::Vector3f GimbalCtrl::compute_east_axis(matrix::Quaternion<float> attitude)
@@ -129,7 +151,15 @@ matrix::Vector3f GimbalCtrl::compute_east_axis(matrix::Quaternion<float> attitud
 	// ------------------------------------------------
 	// TODO compute drone's Y axis in local frame
 	// ------------------------------------------------
-	return matrix::Vector3f(0, 0, 0);
+	//matrix::Dcm<float> Y_local_frame_int(attitude.inversed());
+	matrix::Vector3f Y(0,1,0);
+
+	//matrix::Vector3f Y_local_frame;
+
+	//Y_local_frame = Y_local_frame_int*Y;
+
+	//return Y_local_frame;
+	return attitude.conjugate_inversed(Y);
 }
 
 matrix::Vector3f GimbalCtrl::compute_normal_vector(const matrix::Vector3f target_direction, const matrix::Vector3f down_lf)
@@ -139,8 +169,13 @@ matrix::Vector3f GimbalCtrl::compute_normal_vector(const matrix::Vector3f target
 	//      containing target direction and
 	//      drone's Z axis in local frame
 	// ---------------------------------------------------
+	matrix::Vector3f normal_V;
 
-	return matrix::Vector3f(0, 0, 0);
+	normal_V(0) = target_direction(1)*down_lf(2) - target_direction(2)*down_lf(1);
+	normal_V(1) = target_direction(2)*down_lf(0) - target_direction(0)*down_lf(2);
+	normal_V(2) = target_direction(0)*down_lf(1) - target_direction(1)*down_lf(0);
+
+	return normal_V;
 }
 
 float GimbalCtrl::compute_yaw(matrix::Vector3f target_direction,
@@ -152,7 +187,11 @@ float GimbalCtrl::compute_yaw(matrix::Vector3f target_direction,
 	// TODO find desired yaw angle as angle between
 	//      the plane's normal vector and the drone's Y axis in local frame
 	// ---------------------------------------------------------------------
-	return 0.0f;
+	float Y;
+
+	Y = acos((east_lf*n)/(east_lf.norm()*n.norm()));
+
+	return Y;
 }
 
 float GimbalCtrl::compute_pitch(matrix::Vector3f target_direction,
@@ -164,7 +203,12 @@ float GimbalCtrl::compute_pitch(matrix::Vector3f target_direction,
 	// TODO find desired pitch angle as angle between
 	//      drone's Z axis in local frame and target direction
 	// ----------------------------------------------------------
-	return 0.0f;
+
+	float P;
+
+	P = M_PI/2 - acos((down_lf*target_direction)/(down_lf.norm()*target_direction.norm()));
+
+	return P;
 }
 
 void GimbalCtrl::publish_gimbal_command(float pitch, float yaw)
