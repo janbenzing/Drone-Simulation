@@ -74,35 +74,47 @@ void GimbalCtrl::update()
 {
 	if (_mode == MODE::AUTOMATIC) {
 		// target position in local frame
-		matrix::Vector3f target_pos_lf;
+		target_position_ned_filtered_s target_pos_lf;
 
 		// drone's attitude
-		matrix::Quaternion<float> att_vehicle;
+		//matrix::Quaternion<float> att_vehicle;
+		vehicle_attitude_s att_vehicle;
 
 		// drone's position
-		matrix::Vector3f pos_vehicle;
+		vehicle_local_position_s pos_vehicle;
 
 		// ------------------------------------------------
 		// TODO set target position from uORB
 		// ------------------------------------------------
 		orb_copy(ORB_ID(target_position_ned_filtered), _target_position_ned_filtered_sub, &target_pos_lf);
+		matrix::Vector3f _target_pos;
+		_target_pos(0) = target_pos_lf.x;
+		_target_pos(1) = target_pos_lf.y;
+		_target_pos(2) = target_pos_lf.z;
 
 		// ------------------------------------------------
 		// TODO set drone's attitude from uORB
 		// ------------------------------------------------
 		orb_copy(ORB_ID(vehicle_attitude), _vehicle_attitude_sub, &att_vehicle);
+		matrix::Quaternion<float> attitude;
+		attitude = att_vehicle.q;
 
 		// ------------------------------------------------
 		// TODO set drone position from uORB
 		// ------------------------------------------------
 		orb_copy(ORB_ID(vehicle_local_position), _local_pos_sub, &pos_vehicle);
+		matrix::Vector3f position_vehicle;
+		position_vehicle(0) = pos_vehicle.x;
+		position_vehicle(1) = pos_vehicle.y;
+		position_vehicle(2) = pos_vehicle.z;
+
 
 		// create variable for target direction
-		const matrix::Vector3f target_dir = compute_target_direction(target_pos_lf, pos_vehicle);
+		const matrix::Vector3f target_dir = compute_target_direction(_target_pos, position_vehicle);
 
 		// create variables for drone's Z and Y axis in local frame
-		const matrix::Vector3f down_lf = compute_down_axis(att_vehicle);
-		const matrix::Vector3f east_lf = compute_east_axis(att_vehicle);
+		const matrix::Vector3f down_lf = compute_down_axis(attitude);
+		const matrix::Vector3f east_lf = compute_east_axis(attitude);
 
 		// create variable for normal vector of auxiliary plane
 		// containing target direction and drone's Z axis in local frame
@@ -171,9 +183,13 @@ matrix::Vector3f GimbalCtrl::compute_normal_vector(const matrix::Vector3f target
 	// ---------------------------------------------------
 	matrix::Vector3f normal_V;
 
-	normal_V(0) = target_direction(1)*down_lf(2) - target_direction(2)*down_lf(1);
-	normal_V(1) = target_direction(2)*down_lf(0) - target_direction(0)*down_lf(2);
-	normal_V(2) = target_direction(0)*down_lf(1) - target_direction(1)*down_lf(0);
+	normal_V = target_direction.cross(down_lf);
+
+	normal_V.normalize();
+
+	//normal_V(0) = target_direction(1)*down_lf(2) - target_direction(2)*down_lf(1);
+	//normal_V(1) = target_direction(2)*down_lf(0) - target_direction(0)*down_lf(2);
+	//normal_V(2) = target_direction(0)*down_lf(1) - target_direction(1)*down_lf(0);
 
 	return normal_V;
 }
@@ -188,8 +204,24 @@ float GimbalCtrl::compute_yaw(matrix::Vector3f target_direction,
 	//      the plane's normal vector and the drone's Y axis in local frame
 	// ---------------------------------------------------------------------
 	float Y;
+	double dot_P;
+	double yaw_Direction;
+	matrix::Vector3f cross_Product; 
 
-	Y = acos((east_lf*n)/(east_lf.norm()*n.norm()));
+	dot_P = east_lf.dot(n);
+
+	cross_Product = east_lf.cross(n);
+
+	yaw_Direction = cross_Product.dot(down_lf);
+
+	if (yaw_Direction < 0)
+	{
+		Y = -acos((double)dot_P/(double)((east_lf.norm())*(n.norm())));
+	}
+	if (yaw_Direction >= 0)
+	{
+		Y = acos((double)dot_P/(double)((east_lf.norm())*(n.norm())));
+	}
 
 	return Y;
 }
@@ -205,8 +237,11 @@ float GimbalCtrl::compute_pitch(matrix::Vector3f target_direction,
 	// ----------------------------------------------------------
 
 	float P;
+	double dot_Product; 
 
-	P = M_PI/2 - acos((down_lf*target_direction)/(down_lf.norm()*target_direction.norm()));
+	dot_Product = down_lf.dot(target_direction);
+
+	P = -M_PI/2 - acos((double)dot_Product);
 
 	return P;
 }
