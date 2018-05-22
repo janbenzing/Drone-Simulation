@@ -345,7 +345,7 @@ void TargetDetector::update_subscriptions()
 
 		matrix::Quaternion<float>  q(vehicle_attitude_msg.q); 
 
-		matrix::Dcm<float> rot_matrix(q.inversed());
+		matrix::Dcm<float> rot_matrix(q);
 
 		_att_vehicle = rot_matrix;
 
@@ -359,6 +359,6 @@ void TargetDetector::update_subscriptions()
 	 	orb_copy(ORB_ID(vehicle_local_position), _local_pos_sub, &local_pos);
 	 	_pos_vehicle(0) = local_pos.x;
 	 	_pos_vehicle(1) = local_pos.y;
-	 	_pos_vehicle(3) = -local_pos.z;
+	 	_pos_vehicle(2) = local_pos.z;
 	 } 
 }

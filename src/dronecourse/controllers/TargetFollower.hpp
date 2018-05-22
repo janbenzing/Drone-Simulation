@@ -33,6 +33,27 @@ public:
 private:
 	void update_subscriptions();
 	void update_parameters();
+
+	GimbalCtrl _gimbal; 
+	int Etat;
+	int target_position_net_filtered_sub;
+
+	double yaw = 0;
+	double pitch = 0;
+
+	float _target_filtered_x;        
+	float _target_filtered_y;           
+	float _target_filtered_z;           
+	float _target_filtered_vx;          
+	float _target_filtered_vy;          
+	float _target_filtered_vz;          
+	float _target_filtered_var_x;      
+	float _target_filtered_var_y;       
+	float _target_filtered_var_z;       
+	float _target_filtered_var_vx;     
+	float _target_filtered_var_vy;      
+	float _target_filtered_var_vz;       
+
 	
 };
 
