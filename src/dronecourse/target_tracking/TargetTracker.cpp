@@ -93,7 +93,6 @@ void TargetTracker::update()
 
 	bool new_measure = false;
 	update_parameters();
-
 	Kalman.predict();
 	// ------------------------------------------------------------
 	// TODO check if we have a new target_position_ned message
@@ -110,16 +109,18 @@ void TargetTracker::update()
 		matrix::Vector<float, M> measure_val;
 
 		orb_copy(ORB_ID(target_position_ned), _target_position_ned_sub, &target_position);
+
+		matrix::Vector<float,N> target_measure;
+		target_measure(0) = target_position.x;
+		target_measure(1) = target_position.y;
+		target_measure(2) = target_position.z;
+		matrix::SquareMatrix<float,N> var_estim;
+		var_estim = target_position.var;
+
+		matrix::SquareMatrix<float,N> target_measure_cov(var_estim); //MAYBE AN ERROR
+
+		Kalman.correct(target_measure, target_measure_cov);
 	}
-
-	matrix::Vector<float, N> target_measure;
-	target_measure(0) = target_position.x;
-	target_measure(1) = target_position.y;
-	target_measure(2) = target_position.z;
-
-	matrix::SquareMatrix<float,N> target_measure_cov(target_position.var);
-
-	Kalman.correct(target_measure, target_measure_cov);
 
 	// -------------------------------------------------------------------------
 	// TODO call publish_filtered_target_position(...) to publish
@@ -162,30 +163,30 @@ void TargetTracker::publish_filtered_target_position(const matrix::Vector<float,
 	// TODO create local variable of type struct target_position_ned_filtered_s
 	//      set all fields to 0 and then fill fields
 	// -------------------------------------------------------------------------------------------
-	target_position_ned_s target_positin_ned_filt;
+	target_position_ned_s target_position_ned_filt;
 
-	target_positin_ned_filt.target_id = 0;
+	target_position_ned_filt.target_id = 0;
 
-	target_positin_ned_filt.x = pos_vel(0);
-	target_positin_ned_filt.y = pos_vel(1);
-	target_positin_ned_filt.z = pos_vel(2);
-
-	/*float var_int[9] = {variance(0), 0, 0,
-					0, variance(1), 0,
-					0, 0, variance(2)};*/
+	target_position_ned_filt.x = pos_vel(0);
+	target_position_ned_filt.y = pos_vel(1);
+	target_position_ned_filt.z = pos_vel(2);
 
 	for (int i = 0; i < N*N; ++i)
 	{
-		target_positin_ned_filt.var[i] = 0;
+		target_position_ned_filt.var[i] = 0;
 	}
 
 	for (int i = 0; i < N; ++i)
 	{
-		target_positin_ned_filt.var[i] = variance(i);
+		target_position_ned_filt.var[i] = variance(i); //MAYBE ERROR IN LOOP
 	}
 
 	// -------------------------------------------------------------------------------------------
 	// TODO publish your target_position_ned_s message
 	// -------------------------------------------------------------------------------------------
-	orb_publish(ORB_ID(target_position_ned_filtered), _target_position_ned_filtered_pub, &target_positin_ned_filt);
+	if (_target_position_ned_filtered_pub == nullptr) {
+			_target_position_ned_filtered_pub = orb_advertise(ORB_ID(target_position_ned_filtered), &target_positin_ned_filt);
+		} else {
+			orb_publish(ORB_ID(target_position_ned_filtered), _target_position_ned_filtered_pub, &target_positin_ned_filt);
+		}
 }
