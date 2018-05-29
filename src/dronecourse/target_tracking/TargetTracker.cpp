@@ -53,19 +53,19 @@ TargetTracker::TargetTracker(float dt)
 
 	matrix::Vector<float,M> x0;
 
-	x0(0) = 0;
-	x0(1) = 0;
-	x0(2) = 0;
-	x0(3) = 0;
-	x0(4) = 0;
-	x0(5) = 0;
+	x0(0) = 0.0;
+	x0(1) = 0.0;
+	x0(2) = 0.0;
+	x0(3) = 0.0;
+	x0(4) = 0.0;
+	x0(5) = 0.0;
 	
 	matrix::Vector<float, M> p0;
 
 	for (int i = 0; i < M; ++i)
 	{
-		_w(i) = 0.5;
-		p0(i) = 0.5;
+		_w(i) = 0.5f;
+		p0(i) = 1000.0f;
 	}
 
 	Kalman.init(F, _w, H, x0, p0, dt);
@@ -185,8 +185,8 @@ void TargetTracker::publish_filtered_target_position(const matrix::Vector<float,
 	// TODO publish your target_position_ned_s message
 	// -------------------------------------------------------------------------------------------
 	if (_target_position_ned_filtered_pub == nullptr) {
-			_target_position_ned_filtered_pub = orb_advertise(ORB_ID(target_position_ned_filtered), &target_positin_ned_filt);
+			_target_position_ned_filtered_pub = orb_advertise(ORB_ID(target_position_ned_filtered), &target_position_ned_filt);
 		} else {
-			orb_publish(ORB_ID(target_position_ned_filtered), _target_position_ned_filtered_pub, &target_positin_ned_filt);
+			orb_publish(ORB_ID(target_position_ned_filtered), _target_position_ned_filtered_pub, &target_position_ned_filt);
 		}
 }

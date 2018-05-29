@@ -16,12 +16,13 @@ TrajectoryCtrl::TrajectoryCtrl(GimbalCtrl &gimbal, WaypointNavigator &navigator)
 	PositionCtrl(gimbal),
 	_navigator(&navigator),
 	_dronecourse_waypoint_pub(nullptr),
-	waypoint_published(false),
+	waypoint_published(false)
 	// --------------------------------------------------------------------------
 	// TODO: Initialize the waypoint index (initially invalid)
 	// --------------------------------------------------------------------------
-	_waypoint_index(-1)
+	
 {
+	_waypoint_index = 0;
 }
 
 
@@ -38,17 +39,22 @@ void TrajectoryCtrl::update()
 	PX4_INFO("Index is = %d", _waypoint_index);
 	PX4_INFO("is_goal_reached = %d", is_goal_reached());
 
-	if (PositionCtrl::is_goal_reached() && _waypoint_index != 2)
+	PositionCtrl::update();
+
+	_navigator->waypoint_copy(_waypoint_index, &_waypoint);
+	PositionCtrl::set_position_command(_waypoint);
+
+	if(!is_goal_reached())
 	{
-		_waypoint_index = _waypoint_index + 1;
-		_navigator->waypoint_copy(_waypoint_index, &_waypoint);
-		PositionCtrl::set_position_command(_waypoint);
+		PositionCtrl::update();
+		if (PositionCtrl::is_goal_reached())
+		{
+			_waypoint_index = _waypoint_index + 1;
+		}
 	}
-	
 	// --------------------------------------------------------------------------
 	// TODO: Upate the position controller
 	// --------------------------------------------------------------------------
-	PositionCtrl::update();
 }
 
 bool TrajectoryCtrl::is_goal_reached()
@@ -56,7 +62,7 @@ bool TrajectoryCtrl::is_goal_reached()
 	// --------------------------------------------------------------------------
 	// TODO: Implement the logic for having visited all waypoints
 	// --------------------------------------------------------------------------
-	if(_navigator->waypoint_count() == _waypoint_index)
+	if(_navigator->waypoint_count() <= _waypoint_index)
 	{
 		PX4_INFO("ALL GOALS ARE REACHED");
 		return true;

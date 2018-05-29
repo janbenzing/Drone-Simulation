@@ -63,15 +63,22 @@ void TargetFollower::update()
 	 		_target_filtered_var_x = target_position.var_x;
 	 		_target_filtered_var_y = target_position.var_y;
 	 		_target_filtered_var_z = target_position.var_z;
+	 		_target_filtered_var_vx = target_position.var_vx;
+	 		_target_filtered_var_vy = target_position.var_vy;
+	 		_target_filtered_var_vz = target_position.var_vz;
 
 
 	 		PX4_INFO("POS_X EST = %f", (double)_target_filtered_x);
 	 		PX4_INFO("POS_Y EST = %f", (double)_target_filtered_y);
 	 		PX4_INFO("POS_Z EST = %f", (double)_target_filtered_z);
 
-	 		PX4_INFO("VAR_X EST = %f", (double)_target_filtered_var_x);
+	 		/*PX4_INFO("VAR_X EST = %f", (double)_target_filtered_var_x);
 	 		PX4_INFO("VAR_Y EST = %f", (double)_target_filtered_var_y);
-	 		PX4_INFO("VAR_Z EST = %f", (double)_target_filtered_var_z);
+	 		PX4_INFO("VAR_Z EST = %f", (double)_target_filtered_var_z);*/
+
+	 		PX4_INFO("VAR_VX EST = %f", (double)_target_filtered_var_vx);
+	 		PX4_INFO("VAR_VY EST = %f", (double)_target_filtered_var_vy);
+	 		PX4_INFO("VAR_VZ EST = %f", (double)_target_filtered_var_vz);
 
 
 			break;
