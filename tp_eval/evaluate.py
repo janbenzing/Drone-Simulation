@@ -270,11 +270,12 @@ def evaluation_task_1(data, perf, settings, info):
             file_name.write(str3 + '\n')
             file_name.write('\n')
 
-        ax = fig.add_subplot(1, 3, i+1)
-        ax.set_xlabel('time [s]')
-        ax.set_ylabel('distance from waypoint n.{} [m]'.format(i+1))
-        ax.grid()
-        ax.plot(tarr, dist)
+        if settings['show_figures']:
+            ax = fig.add_subplot(1, 3, i+1)
+            ax.set_xlabel('time [s]')
+            ax.set_ylabel('distance from waypoint n.{} [m]'.format(i+1))
+            ax.grid()
+            ax.plot(tarr, dist)
 
 
     if len(score) >= 1:
@@ -295,11 +296,12 @@ def evaluation_task_1(data, perf, settings, info):
 
     #
 
-    fig = plt.figure("Waypoint Navigation - Trajectory")
-
-    ax = fig.add_subplot(1, 1, 1, projection='3d')
-
-    ax.plot(pxarr, pyarr, zs=pzarr)
+    if settings['show_figures']:
+        fig = plt.figure("Waypoint Navigation - Trajectory")
+    
+        ax = fig.add_subplot(1, 1, 1, projection='3d')
+    
+        ax.plot(pxarr, pyarr, zs=pzarr)
 
 
     x_m = mean([np.amin(pxarr), np.amax(pxarr)])
@@ -326,20 +328,21 @@ def evaluation_task_1(data, perf, settings, info):
 
     # # plot spheres
 
-    for i in xrange(3):
-        u, v = np.mgrid[0:2*np.pi:20j, 0:np.pi:10j]
-        x = pwx[i] + np.cos(u)*np.sin(v)
-        y = pwy[i] + np.sin(u)*np.sin(v)
-        z = pwz[i] + np.cos(v)
-        ax.plot_wireframe(x, y, z, color="r")
+    if settings['show_figures']:
+        for i in xrange(3):
+            u, v = np.mgrid[0:2*np.pi:20j, 0:np.pi:10j]
+            x = pwx[i] + np.cos(u)*np.sin(v)
+            y = pwy[i] + np.sin(u)*np.sin(v)
+            z = pwz[i] + np.cos(v)
+            ax.plot_wireframe(x, y, z, color="r")
 
-    ax.set_xlim(x_range)
-    ax.set_ylim(y_range)
-    ax.set_zlim(z_range)
-
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    ax.set_zlabel('z')
+        ax.set_xlim(x_range)
+        ax.set_ylim(y_range)
+        ax.set_zlim(z_range)
+    
+        ax.set_xlabel('x')
+        ax.set_ylabel('y')
+        ax.set_zlabel('z')
 
 
 def evaluation_task_2(data, perf, settings, info):
@@ -363,6 +366,8 @@ def evaluation_task_2(data, perf, settings, info):
         timeout = False
 
     if timeout:
+        print 'timeout during task 2'
+        print ''
         perf['accuracy_score_task2'] = 0
         perf['time_task2'] = 600
         return
@@ -416,6 +421,7 @@ def evaluation_task_2(data, perf, settings, info):
 
     if not sum(landedarr == 1):
         print 'no landing detected during task 2'
+        print ''
         perf['task2_not_done'] = True
         return
 
@@ -427,11 +433,12 @@ def evaluation_task_2(data, perf, settings, info):
 
     # #
 
-    fig = plt.figure("Platform landing")
-
-    ax = fig.add_subplot(1, 2, 1, projection='3d')
-
-    ax.plot(pxarr2, pyarr2, zs=pzarr2)
+    if settings['show_figures']:
+        fig = plt.figure("Platform landing")
+    
+        ax = fig.add_subplot(1, 2, 1, projection='3d')
+    
+        ax.plot(pxarr2, pyarr2, zs=pzarr2)
 
     x_m2 = mean([np.amin(pxarr2), np.amax(pxarr2)])
     y_m2 = mean([np.amin(pyarr2), np.amax(pyarr2)])
@@ -458,31 +465,35 @@ def evaluation_task_2(data, perf, settings, info):
         s = np.array(center)+np.array(s)
         e = np.array(center)+np.array(e)
         if np.linalg.norm(s-e) == 2*r1[1] or np.linalg.norm(s-e) == 2*r2[1] or np.linalg.norm(s-e) == 2*r3[1]:
-            ax.plot3D(*zip(s, e), color="r")
+            if settings['show_figures']:
+                ax.plot3D(*zip(s, e), color="r")
 
-    ax.set_xlim(x_range2)
-    ax.set_ylim(y_range2)
-    ax.set_zlim(z_range2)
-
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    ax.set_zlabel('z')
+    if settings['show_figures']:
+        ax.set_xlim(x_range2)
+        ax.set_ylim(y_range2)
+        ax.set_zlim(z_range2)
+    
+        ax.set_xlabel('x')
+        ax.set_ylabel('y')
+        ax.set_zlabel('z')
 
     # # plot 2D platform + landing spot
 
-    ax = fig.add_subplot(1, 2, 2)
+    if settings['show_figures']:
+        ax = fig.add_subplot(1, 2, 2)
 
     # # plot 2D platform
 
-    ax.plot([- EDGE_SIZE, + EDGE_SIZE], [- EDGE_SIZE, - EDGE_SIZE], 'r', label='platform edge')
-    ax.plot([- EDGE_SIZE, + EDGE_SIZE], [+ EDGE_SIZE, + EDGE_SIZE], 'r')
-    ax.plot([+ EDGE_SIZE, + EDGE_SIZE], [- EDGE_SIZE, + EDGE_SIZE], 'r')
-    ax.plot([- EDGE_SIZE, - EDGE_SIZE], [- EDGE_SIZE, + EDGE_SIZE], 'r')
-
-    ax.plot([- FULL_SCORE_EDGE_SIZE, + FULL_SCORE_EDGE_SIZE], [- FULL_SCORE_EDGE_SIZE, - FULL_SCORE_EDGE_SIZE], 'C2', label='full score range')
-    ax.plot([- FULL_SCORE_EDGE_SIZE, + FULL_SCORE_EDGE_SIZE], [+ FULL_SCORE_EDGE_SIZE, + FULL_SCORE_EDGE_SIZE], 'C2')
-    ax.plot([+ FULL_SCORE_EDGE_SIZE, + FULL_SCORE_EDGE_SIZE], [- FULL_SCORE_EDGE_SIZE, + FULL_SCORE_EDGE_SIZE], 'C2')
-    ax.plot([- FULL_SCORE_EDGE_SIZE, - FULL_SCORE_EDGE_SIZE], [- FULL_SCORE_EDGE_SIZE, + FULL_SCORE_EDGE_SIZE], 'C2')
+    if settings['show_figures']:
+        ax.plot([- EDGE_SIZE, + EDGE_SIZE], [- EDGE_SIZE, - EDGE_SIZE], 'r', label='platform edge')
+        ax.plot([- EDGE_SIZE, + EDGE_SIZE], [+ EDGE_SIZE, + EDGE_SIZE], 'r')
+        ax.plot([+ EDGE_SIZE, + EDGE_SIZE], [- EDGE_SIZE, + EDGE_SIZE], 'r')
+        ax.plot([- EDGE_SIZE, - EDGE_SIZE], [- EDGE_SIZE, + EDGE_SIZE], 'r')
+    
+        ax.plot([- FULL_SCORE_EDGE_SIZE, + FULL_SCORE_EDGE_SIZE], [- FULL_SCORE_EDGE_SIZE, - FULL_SCORE_EDGE_SIZE], 'C2', label='full score range')
+        ax.plot([- FULL_SCORE_EDGE_SIZE, + FULL_SCORE_EDGE_SIZE], [+ FULL_SCORE_EDGE_SIZE, + FULL_SCORE_EDGE_SIZE], 'C2')
+        ax.plot([+ FULL_SCORE_EDGE_SIZE, + FULL_SCORE_EDGE_SIZE], [- FULL_SCORE_EDGE_SIZE, + FULL_SCORE_EDGE_SIZE], 'C2')
+        ax.plot([- FULL_SCORE_EDGE_SIZE, - FULL_SCORE_EDGE_SIZE], [- FULL_SCORE_EDGE_SIZE, + FULL_SCORE_EDGE_SIZE], 'C2')
 
     # landing spot
 
@@ -491,21 +502,23 @@ def evaluation_task_2(data, perf, settings, info):
     land_x2 = pxarr2[landedarr == 1][0]
     land_y2 = pyarr2[landedarr == 1][0]
 
-    ax.scatter(land_x2 - plat_x, land_y2 - plat_y, s=100, c='b', label='landing position')
+    if settings['show_figures']:
+        ax.scatter(land_x2 - plat_x, land_y2 - plat_y, s=100, c='b', label='landing position')
 
     # print land_x2 - plat_x
     # print land_y2 - plat_y
 
     dist2 = (max([abs(land_x2 - plat_x), abs(land_y2 - plat_y)]))
-
-    ax.plot([- dist2, + dist2], [- dist2, - dist2], 'b--')
-    ax.plot([- dist2, + dist2], [+ dist2, + dist2], 'b--')
-    ax.plot([+ dist2, + dist2], [- dist2, + dist2], 'b--')
-    ax.plot([- dist2, - dist2], [- dist2, + dist2], 'b--')
-
-    ax.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
-           ncol=1, mode="expand", borderaxespad=0.)
-    ax.grid()
+    
+    if settings['show_figures']:
+        ax.plot([- dist2, + dist2], [- dist2, - dist2], 'b--')
+        ax.plot([- dist2, + dist2], [+ dist2, + dist2], 'b--')
+        ax.plot([+ dist2, + dist2], [- dist2, + dist2], 'b--')
+        ax.plot([- dist2, - dist2], [- dist2, + dist2], 'b--')
+    
+        ax.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
+               ncol=1, mode="expand", borderaxespad=0.)
+        ax.grid()
 
     if dist2 < FULL_SCORE_EDGE_SIZE:
         score_plat = 100
@@ -619,6 +632,8 @@ def evaluation_task_3(data, perf, settings, info):
         timeout = False
 
     if timeout:
+        print 'timeout during task 3'
+        print ''
         perf['accuracy_score_task3'] = 0
         perf['time_task3'] = 600
         return
@@ -628,6 +643,7 @@ def evaluation_task_3(data, perf, settings, info):
 
     if not len(data_task3):
         print 'no data found for task 3'
+        print ''
         perf['task3_not_done'] = True
         return
 
@@ -665,6 +681,7 @@ def evaluation_task_3(data, perf, settings, info):
 
     if 't_target_position_ned_filtered_0__f_x' not in list(data_task3):
         print 'kalman filter not implemented \n'
+        print ''
         perf['task3_not_done'] = True
         return
 
@@ -744,16 +761,18 @@ def evaluation_task_3(data, perf, settings, info):
 
     if not sum(landedarr == 1):
         print 'no landing detected during task 3'
+        print ''
         perf['task3_not_done'] = True
         return
 
     # #
 
-    fig = plt.figure("Truck landing")
-
-    ax = fig.add_subplot(1, 2, 1, projection='3d')
-
-    ax.plot(pxarr, pyarr, zs=pzarr)
+    if settings['show_figures']:
+        fig = plt.figure("Truck landing")
+    
+        ax = fig.add_subplot(1, 2, 1, projection='3d')
+    
+        ax.plot(pxarr, pyarr, zs=pzarr)
 
     x_m3 = mean([np.amin(pxarr), np.amax(pxarr)])
     y_m3 = mean([np.amin(pyarr), np.amax(pyarr)])
@@ -771,31 +790,32 @@ def evaluation_task_3(data, perf, settings, info):
 
     # # plot truck position
     
-    ax.plot(tr_xarr, tr_yarr, zs=tr_zarr)
+    if settings['show_figures']:
+        ax.plot(tr_xarr, tr_yarr, zs=tr_zarr)
+    
+        ax.set_xlim(x_range3)
+        ax.set_ylim(y_range3)
+        ax.set_zlim(z_range3)
+    
+        ax.set_xlabel('x')
+        ax.set_ylabel('y')
+        ax.set_zlabel('z')
 
-    ax.set_xlim(x_range3)
-    ax.set_ylim(y_range3)
-    ax.set_zlim(z_range3)
-
-    ax.set_xlabel('x')
-    ax.set_ylabel('y')
-    ax.set_zlabel('z')
-
-    # # plot 2D platform + landing spot
-
-    ax = fig.add_subplot(1, 2, 2)
-
-    # # plot 2D truck surface
-
-    ax.plot([- EDGE_SIZE_X, + EDGE_SIZE_X], [- EDGE_SIZE_Y, - EDGE_SIZE_Y], 'r', label='platform edge')
-    ax.plot([- EDGE_SIZE_X, + EDGE_SIZE_X], [+ EDGE_SIZE_Y, + EDGE_SIZE_Y], 'r')
-    ax.plot([+ EDGE_SIZE_X, + EDGE_SIZE_X], [- EDGE_SIZE_Y, + EDGE_SIZE_Y], 'r')
-    ax.plot([- EDGE_SIZE_X, - EDGE_SIZE_X], [- EDGE_SIZE_Y, + EDGE_SIZE_Y], 'r')
-
-    ax.plot([- FULL_SCORE_EDGE_SIZE_X, + FULL_SCORE_EDGE_SIZE_X], [- FULL_SCORE_EDGE_SIZE_Y, - FULL_SCORE_EDGE_SIZE_Y], 'C2', label='full score range')
-    ax.plot([- FULL_SCORE_EDGE_SIZE_X, + FULL_SCORE_EDGE_SIZE_X], [+ FULL_SCORE_EDGE_SIZE_Y, + FULL_SCORE_EDGE_SIZE_Y], 'C2')
-    ax.plot([+ FULL_SCORE_EDGE_SIZE_X, + FULL_SCORE_EDGE_SIZE_X], [- FULL_SCORE_EDGE_SIZE_Y, + FULL_SCORE_EDGE_SIZE_Y], 'C2')
-    ax.plot([- FULL_SCORE_EDGE_SIZE_X, - FULL_SCORE_EDGE_SIZE_X], [- FULL_SCORE_EDGE_SIZE_Y, + FULL_SCORE_EDGE_SIZE_Y], 'C2')
+        # # plot 2D platform + landing spot
+    
+        ax = fig.add_subplot(1, 2, 2)
+    
+        # # plot 2D truck surface
+    
+        ax.plot([- EDGE_SIZE_X, + EDGE_SIZE_X], [- EDGE_SIZE_Y, - EDGE_SIZE_Y], 'r', label='platform edge')
+        ax.plot([- EDGE_SIZE_X, + EDGE_SIZE_X], [+ EDGE_SIZE_Y, + EDGE_SIZE_Y], 'r')
+        ax.plot([+ EDGE_SIZE_X, + EDGE_SIZE_X], [- EDGE_SIZE_Y, + EDGE_SIZE_Y], 'r')
+        ax.plot([- EDGE_SIZE_X, - EDGE_SIZE_X], [- EDGE_SIZE_Y, + EDGE_SIZE_Y], 'r')
+    
+        ax.plot([- FULL_SCORE_EDGE_SIZE_X, + FULL_SCORE_EDGE_SIZE_X], [- FULL_SCORE_EDGE_SIZE_Y, - FULL_SCORE_EDGE_SIZE_Y], 'C2', label='full score range')
+        ax.plot([- FULL_SCORE_EDGE_SIZE_X, + FULL_SCORE_EDGE_SIZE_X], [+ FULL_SCORE_EDGE_SIZE_Y, + FULL_SCORE_EDGE_SIZE_Y], 'C2')
+        ax.plot([+ FULL_SCORE_EDGE_SIZE_X, + FULL_SCORE_EDGE_SIZE_X], [- FULL_SCORE_EDGE_SIZE_Y, + FULL_SCORE_EDGE_SIZE_Y], 'C2')
+        ax.plot([- FULL_SCORE_EDGE_SIZE_X, - FULL_SCORE_EDGE_SIZE_X], [- FULL_SCORE_EDGE_SIZE_Y, + FULL_SCORE_EDGE_SIZE_Y], 'C2')
 
     # landing spot
         
@@ -837,7 +857,8 @@ def evaluation_task_3(data, perf, settings, info):
     # print dist_x_rot
     # print dist_y_rot
 
-    ax.scatter(dist_x_rot, dist_y_rot, s=100, c='b', label='landing position')
+    if settings['show_figures']:
+        ax.scatter(dist_x_rot, dist_y_rot, s=100, c='b', label='landing position')
 
     dist3 = max([abs(dist_x), abs(dist_y)])
     dist_rot3 = max([abs(dist_x_rot), abs(dist_y_rot)])
@@ -860,16 +881,17 @@ def evaluation_task_3(data, perf, settings, info):
     eval_m = -PLATFORM_MAX_SCORE/(edge_size - full_score_edge_size)
     eval_q = PLATFORM_MAX_SCORE - full_score_edge_size * eval_m
 
-    ax.plot([- dist_x, + dist_x], [- dist_y, - dist_y], 'b--')
-    ax.plot([- dist_x, + dist_x], [+ dist_y, + dist_y], 'b--')
-    ax.plot([+ dist_x, + dist_x], [- dist_y, + dist_y], 'b--')
-    ax.plot([- dist_x, - dist_x], [- dist_y, + dist_y], 'b--')
+    if settings['show_figures']:
+        ax.plot([- dist_x, + dist_x], [- dist_y, - dist_y], 'b--')
+        ax.plot([- dist_x, + dist_x], [+ dist_y, + dist_y], 'b--')
+        ax.plot([+ dist_x, + dist_x], [- dist_y, + dist_y], 'b--')
+        ax.plot([- dist_x, - dist_x], [- dist_y, + dist_y], 'b--')
+        
+        
     
-    
-
-    ax.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
-           ncol=1, mode="expand", borderaxespad=0.)
-    ax.grid()
+        ax.legend(bbox_to_anchor=(0., 1.02, 1., .102), loc=3,
+               ncol=1, mode="expand", borderaxespad=0.)
+        ax.grid()
 
     if dist3 < full_score_edge_size:
         score_tr = 100
@@ -999,60 +1021,110 @@ def fill_evaluation_spreadsheet(perf):
 
     sciper = 'dummy SCIPER'  # dummy
 
-    # Open output file
-    book = openpyxl.load_workbook(evaluation_filename)
-    sheet = book.active
 
-    # Add a bold format to use to highlight cells.
+    filename = source_folder + '/sciper.txt'
 
-    # Write some data headers.
-    idx = 1
-    empty = sheet.cell(row=1, column=idx).value == None
+    f = open(filename, 'r')
 
-    while not empty:
-        idx =idx+1
-        if sheet.cell(row=1, column=idx).value == None:
-            empty = 1
+    a = []
 
-    # Start from the first cell below the headers.
-    row = 1
-    col = idx
-    sheet.cell(column=col, row=row, value=sciper)
+    for line in f:
+        a.append(line[:-1])
 
-    # Iterate over the data and write it out row by row.
-    sheet.cell(column=col, row=row + 1, value=perf['score_waypoints'][0]) if len(perf['score_waypoints']) >= 1 else 0
-    sheet.cell(column=col, row=row + 2, value=perf['score_waypoints'][1]) if len(perf['score_waypoints']) >= 2 else 0
-    sheet.cell(column=col, row=row + 3, value=perf['score_waypoints'][2]) if len(perf['score_waypoints']) >= 3 else 0
-    sheet.cell(column=col, row=row + 4, value=perf['accuracy_score_task1'])
-    sheet.cell(column=col, row=row + 5, value=perf['time_task1'])
-    sheet.cell(column=col, row=row + 6, value=perf['accuracy_score_task2'])
-    sheet.cell(column=col, row=row + 7, value=perf['time_task2'])
-    sheet.cell(column=col, row=row + 8, value=perf['accuracy_score_task3'])
-    sheet.cell(column=col, row=row + 9, value=perf['time_task3'])
-    sheet.cell(column=col, row=row + 12, value=perf['accuracy_score_task1'] + perf['accuracy_score_task2'] + perf['accuracy_score_task3'])
-    sheet.cell(column=col, row=row + 14, value=perf['time_task1'] + perf['time_task2'] + perf['time_task3'])
+    print 'sciper = ', a[0]
+
+    sciper = a[0]
+
+#    # Open output file
+#    book = openpyxl.load_workbook(evaluation_filename)
+#    sheet = book.active
+#
+#    # Add a bold format to use to highlight cells.
+#
+#    # Write some data headers.
+#    idx = 1
+#    empty = sheet.cell(row=1, column=idx).value == None
+#
+#    while not empty:
+#        idx =idx+1
+#        if sheet.cell(row=1, column=idx).value == None:
+#            empty = 1
+#
+#    # Start from the first cell below the headers.
+#    row = 1
+#    col = idx
+#    sheet.cell(column=col, row=row, value=sciper)
+#
+#    # Iterate over the data and write it out row by row.
+#    sheet.cell(column=col, row=row + 1, value=perf['score_waypoints'][0]) if len(perf['score_waypoints']) >= 1 else 0
+#    sheet.cell(column=col, row=row + 2, value=perf['score_waypoints'][1]) if len(perf['score_waypoints']) >= 2 else 0
+#    sheet.cell(column=col, row=row + 3, value=perf['score_waypoints'][2]) if len(perf['score_waypoints']) >= 3 else 0
+#    sheet.cell(column=col, row=row + 4, value=perf['accuracy_score_task1'])
+#    sheet.cell(column=col, row=row + 5, value=perf['time_task1'])
+#    sheet.cell(column=col, row=row + 6, value=perf['accuracy_score_task2'])
+#    sheet.cell(column=col, row=row + 7, value=perf['time_task2'])
+#    sheet.cell(column=col, row=row + 8, value=perf['accuracy_score_task3'])
+#    sheet.cell(column=col, row=row + 9, value=perf['time_task3'])
+#    sheet.cell(column=col, row=row + 12, value=perf['accuracy_score_task1'] + perf['accuracy_score_task2'] + perf['accuracy_score_task3'])
+#    sheet.cell(column=col, row=row + 14, value=perf['time_task1'] + perf['time_task2'] + perf['time_task3'])
+
+#    if perf['task1_not_done']:
+#        sheet.cell(column=col, row=row + 1, value='x')
+#        sheet.cell(column=col, row=row + 2, value='x')
+#        sheet.cell(column=col, row=row + 3, value='x')
+#        sheet.cell(column=col, row=row + 4, value='x')
+#        sheet.cell(column=col, row=row + 5, value='x')
+#
+#    if perf['task2_not_done']:
+#        sheet.cell(column=col, row=row + 6, value='x')
+#        sheet.cell(column=col, row=row + 7, value='x')
+#    if perf['task3_not_done']:
+#        sheet.cell(column=col, row=row + 8, value='x')
+#        sheet.cell(column=col, row=row + 9, value='x')
+#
+#    if perf['task1_not_done'] or perf['task2_not_done'] or perf['task3_not_done']:
+#        sheet.cell(column=col, row=row + 12, value='x')
+#        sheet.cell(column=col, row=row + 14, value='x')
+
+    # timeout and 0 accuracy if not done
 
     if perf['task1_not_done']:
-        sheet.cell(column=col, row=row + 1, value='x')
-        sheet.cell(column=col, row=row + 2, value='x')
-        sheet.cell(column=col, row=row + 3, value='x')
-        sheet.cell(column=col, row=row + 4, value='x')
-        sheet.cell(column=col, row=row + 5, value='x')
-
+        perf['accuracy_score_task1'] = 0
+        perf['time_task1'] = 600
     if perf['task2_not_done']:
-        sheet.cell(column=col, row=row + 6, value='x')
-        sheet.cell(column=col, row=row + 7, value='x')
+        perf['accuracy_score_task2'] = 0
+        perf['time_task2'] = 600
     if perf['task3_not_done']:
-        sheet.cell(column=col, row=row + 8, value='x')
-        sheet.cell(column=col, row=row + 9, value='x')
+        perf['accuracy_score_task3'] = 0
+        perf['time_task3'] = 600
 
-    if perf['task1_not_done'] or perf['task2_not_done'] or perf['task3_not_done']:
-        sheet.cell(column=col, row=row + 12, value='x')
-        sheet.cell(column=col, row=row + 14, value='x')
+    # timeout if 0 accuracy
+
+    if perf['accuracy_score_task1'] == 0:
+        perf['time_task1'] = 600
+    if perf['accuracy_score_task2'] == 0:
+        perf['time_task2'] = 600
+    if perf['accuracy_score_task3'] == 0:
+        perf['time_task3'] = 600
+
+    filename = (source_folder + '/scores_' + sciper + '.txt');
+    
+
+    header =np.char.array(['sciper', 'score_waypoints_1', 'score_waypoints_2', 'score_waypoints_3', 'accuracy_score_task1', 'time_task1', 'accuracy_score_task2', 'time_task2', 'accuracy_score_task3', 'time_task3', 'accuracy_score_TOT', 'time_TOT'])
+    scores =np.array([int(sciper), perf['score_waypoints'][0], perf['score_waypoints'][1], perf['score_waypoints'][2], perf['accuracy_score_task1'], perf['time_task1'], perf['accuracy_score_task2'], perf['time_task2'], perf['accuracy_score_task3'], perf['time_task3'], perf['accuracy_score_task1'] + perf['accuracy_score_task2'] + perf['accuracy_score_task3'], perf['time_task1'] + perf['time_task2'] + perf['time_task3']])
+
+    data = np.vstack([header,scores])
+    
+    if os.path.isfile(filename):
+        my_data = np.genfromtxt(filename, delimiter=',')
+        data = np.vstack([my_data,scores])
+            
+    np.savetxt((source_folder + '/scores_' + sciper + '.txt'), (data), delimiter=",", fmt="%s")
+    np.savetxt((source_folder + '/scores.txt'), (data), delimiter=",", fmt="%s")
 
     # Save and close file
-    book.save(evaluation_filename)
-    book.close()
+#    book.save(evaluation_filename)
+#    book.close()
 
 
 def main():

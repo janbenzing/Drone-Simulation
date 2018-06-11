@@ -10,10 +10,6 @@ jobs:
                 command: |
                   make _dronecourse
             - run:
-                name: Test
-                command: |
-                  make _dronecourse test_all || :
-            - run:
                 name: Evaluate
                 command: |
                    export HEADLESS=true
@@ -24,3 +20,5 @@ jobs:
                    ./tp_eval/batch_evaluate.sh 5 0 0
             - store_artifacts:
                 path: build_posix_sitl_dronecourse/tmp/rootfs/fs/microsd/log
+            - store_artifacts:
+                path: tp_eval/scores.txt
