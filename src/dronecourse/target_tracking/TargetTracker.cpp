@@ -181,6 +181,8 @@ void TargetTracker::publish_filtered_target_position(const matrix::Vector<float,
 		target_position_ned_filt.var[i] = variance(i); //MAYBE ERROR IN LOOP
 	}
 
+	target_position_ned_filt.timestamp = hrt_absolute_time(); // !!!!!!!!!!!!!!!!!!!!!!!!!!
+
 	// -------------------------------------------------------------------------------------------
 	// TODO publish your target_position_ned_s message
 	// -------------------------------------------------------------------------------------------
